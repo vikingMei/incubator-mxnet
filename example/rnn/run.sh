@@ -51,8 +51,8 @@ echo "DEBUG: ${DEBUG}"
 SRC=./cudnn_lstm_nce.py
 python ${DEBUG} ${SRC}  ${MOD} \
     --stack-rnn False --num-label 5 \
-    --train-data ./data/train.txt \
-    --valid-data ./data/valid.txt \
+    --train-data ./data/ptb.train.txt \
+    --valid-data ./data/ptb.valid.txt \
     --test-data  ./data/ptb.test.txt \
     --model-prefix ./model/lstm 
 
