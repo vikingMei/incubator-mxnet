@@ -3,36 +3,57 @@
 # Usage: 
 # Author: weixing.mei(auimoviki@gmail.com)
 
-args=`getopt -o 'd:' "$@"`
+function usage() {
+    echo "USAGE: $0 [-d] [train|test]"
+    echo ""
+    echo "PARAMETER: "
+    echo "  -d: debug mod, start with python pdb"
+    echo "  train: run in train mode, default"
+    echo "  test:  run in test mode"
+
+    exit 0
+}
+
+args=`getopt -o 'd:' -- "$@"`
+if [[ $? != 0 ]]; then
+    usage
+fi
+
+eval set -- "${args}"
+
+DEBUG=""
+while true;
+do
+    case $1 in 
+	-d|--debug) DEBUG="-m pdb"; shift 1;;
+	--) shift; break;;
+	*)  usage;;
+    esac
+done
 
 mod='train'
-
 if [[ $# -gt 0 ]]; then
     mod=$1
 fi
 
-if [[ $# -gt 1 ]]; then
-    debug=$2
-fi
-
 if [[ ${mod} = 'test' ]]; then
-    MODS='--test --load-epoch 1 --batch-size 1'
+    MOD='--test --load-epoch 18 --batch-size 1'
 elif [[ ${mod} = 'train' ]]; then
-    MODS=''
+    MOD='--batch-size 20'
 else
     echo "invalid mod: [${mod}], only 'test' or 'train'(default) support"
     exit 0
 fi
 
-DEBUG='-m pdb'
-DEBUG=''
-SRC=./src/lstm_bucketing.py
-SRC=./src/cudnn_lstm_nce.py
-python ${DEBUG} ${SRC}  --stack-rnn False --batch-size 20 --num-label 5 \
+echo "MOD: ${MOD}"
+echo "DEBUG: ${DEBUG}"
+
+SRC=./cudnn_lstm_nce.py
+python ${DEBUG} ${SRC}  ${MOD} \
+    --stack-rnn False --num-label 5 \
     --train-data ./data/train.txt \
     --valid-data ./data/valid.txt \
     --test-data  ./data/ptb.test.txt \
-    ${MODS} \
     --model-prefix ./model/lstm 
 
 #dot -Tpdf -o plot.pdf ./plot.gv

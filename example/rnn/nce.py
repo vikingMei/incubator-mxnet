@@ -139,7 +139,7 @@ class LMNceIter(DataIter):
             if buck == len(buckets):
                 ndiscard += 1
                 continue
-            buff = np.full((buckets[buck],), invalid_label, dtype=dtype)
+            buff = np.full((buckets[buck],), invalid_label, dtype='int64')
             buff[:len(sent)] = sent
             self.data[buck].append(buff)
 

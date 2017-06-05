@@ -17,38 +17,24 @@ invalid_label = 0
 
 buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
-def unittest():
-    layout = 'TN'
-    batch_size = 6
-    ftrain = "./data/ptb.test.txt"
-
-    sent, vocab, freq = tokenize_text(ftrain, start_label=start_label, invalid_label=invalid_label)
-    data  = LMNceIter(sent, batch_size, freq, buckets=buckets, invalid_label=invalid_label, layout=layout)
-
-    for item in data:
-        print item
-        break
-
-    sys.exit(0)
-
-
-def get_data(ftrain, fvalid, layout):
-    """
-    generate data iterator from given file
-    """
-    train_sent, vocab, freq = tokenize_text(ftrain, start_label=start_label, invalid_label=invalid_label)
-    val_sent, _, _ = tokenize_text(fvalid, vocab=vocab, start_label=start_label, invalid_label=invalid_label)
-
-    # layout, format of data and label. 'NT' means (batch_size, length) and 'TN' means (length, batch_size).
-    data_train  = LMNceIter(train_sent, args.batch_size, freq, buckets=buckets, invalid_label=invalid_label, layout=layout)
-    data_val    = LMNceIter(val_sent, args.batch_size, freq, buckets=buckets, invalid_label=invalid_label, layout=layout)
-
-    return data_train, data_val, vocab
-
-
 
 def train(args):
-    data_train, data_val, vocab = get_data(args.train_data, args.valid_data, 'TN')
+    layout = 'TN'
+    train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=invalid_label)
+    val_sent, _, _ = tokenize_text(args.valid_data, vocab=vocab, start_label=start_label, invalid_label=invalid_label)
+
+    # layout, format of data and label. 'NT' means (batch_size, length) and 'TN' means (length, batch_size).
+    data_train  = LMNceIter(train_sent, args.batch_size, freq, 
+                            layout=layout,
+                            buckets=buckets, 
+                            invalid_label=invalid_label, 
+                            num_label=args.num_label)
+
+    data_val = LMNceIter(val_sent, args.batch_size, freq, 
+                            layout=layout,
+                            buckets=buckets, 
+                            invalid_label=invalid_label, 
+                            num_label=args.num_label)
 
     cell = mx.rnn.SequentialRNNCell()
     for i in range(args.num_layers):
@@ -72,7 +58,7 @@ def train(args):
         # define output embeding matrix
         #
         # TODO: change to adapter binding
-        embedwgt = mx.sym.Variable(name='output_embed_weight', shape=(len(vocab), args.num_hidden), dtype=args.dtype)
+        embedwgt = mx.sym.Variable(name='output_embed_weight', shape=(len(vocab), args.num_hidden))
         pred = nce_loss(output, label, labwgt, embedwgt, len(vocab), args.num_hidden, args.num_label, seq_len)
  
         return pred, ('data',), ('label', 'label_weight')
