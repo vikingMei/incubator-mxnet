@@ -198,10 +198,12 @@ class LMNceIter(DataIter):
             self.idx.extend([(i, j) for j in range(0, len(buck) - batch_size + 1, batch_size)])
         self.curr_idx = 0
 
-        self.reset()
+        self.prepare()
 
     def reset(self):
-        print("reset")
+        pass
+
+    def prepare(self):
         self.curr_idx = 0
         # shuffle index
         random.shuffle(self.idx)
