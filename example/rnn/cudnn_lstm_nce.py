@@ -19,7 +19,7 @@ buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
 
 def train(args):
-    layout = 'TN'
+    layout = 'NT'
     train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=invalid_label)
     val_sent, _, _ = tokenize_text(args.valid_data, vocab=vocab, start_label=start_label, invalid_label=invalid_label)
 
@@ -41,15 +41,16 @@ def train(args):
         cell.add(mx.rnn.LSTMCell(num_hidden=args.num_hidden, prefix='lstm_l%d_'%i))
 
     def sym_gen(seq_len):
-        # [seq_len, batch_size]
+        # [batch_size, seq_len]
         data = mx.sym.Variable('data')
 
         # map input to a embeding vector
         embedIn = mx.sym.Embedding(data=data, input_dim=len(vocab), output_dim=args.num_embed,name='input_embed')
 
         # pass embedding vector to lstm
-        # [seq_len, batch_size, num_hidden]
-        output, _ = cell.unroll(seq_len, inputs=embedIn, layout='TNC', merge_outputs=True)
+        # [batch_size, seq_len, num_hidden]
+        output, _ = cell.unroll(seq_len, inputs=embedIn, layout='NTC', merge_outputs=True)
+        #output = output.reshape(-1, num_embed)
 
         # map label to embeding
         label = mx.sym.Variable('label')

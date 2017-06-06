@@ -29,16 +29,18 @@ class NceMetric(EvalMetric):
         labels = [labels[0]]
         assert len(labels) == len(preds) == len(labwgt)
 
-        # seq_len, batch_size, num_label
+        # batch_size, seq_len, num_label
         shape = labels[0].shape
+        num_label = shape[-1]
 
         loss = 0.
         num = 0
         probs = []
 
         for pred,lab in zip(preds, labels):
+            lab = lab.reshape(shape=(-1, num_label)).as_in_context(pred.context)
             flag = 1-(lab==self.ignore_label)
-            loss += -ndarray.sum(pred*flag, axis=(0, 1, 2)).asnumpy()[0]
+            loss += -ndarray.sum(pred*flag).asnumpy()[0]
 
         loss /= (shape[1]*shape[2])
 
@@ -49,10 +51,10 @@ class NceMetric(EvalMetric):
 
 def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, num_label, seq_len):
     """
-    data format: TN
+    data format: NT
 
     PARAMETERS:
-        - data: input data, lstm layer output, size [seq_len, batch_size, num_hidden]
+        - data: input data, lstm layer output, size [batch_size, seq_len, num_hidden]
         - label: input label, size: [seq_len, num_label, batch_size], the first one is true label
         - label_weight: weight of each label, [seq_len, num_label, batch],
           first is 1.0, others are 0.0
@@ -61,24 +63,27 @@ def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, nu
         - num_hidden: length of hidden
         - num_label: length of label
     """
-    # [seq_len, batch_size, num_label] ->  [seq_len, batch_size, num_label, num_hidden]
+    # [batch_size, seq_len, num_label] ->  [batch_size, seq_len, num_label, num_hidden]
     label_embed = mx.sym.Embedding(data = label, weight=embed_weight, 
                                    input_dim = vocab_size,
                                    output_dim = num_hidden, name = 'output_embed')
 
-    # data: [seq_len, batch_size, num_hidden] 
-    # label_embed: [seq_len, batch_size, num_label, num_hidden]
+    # data: [batch_size, seq_len, num_hidden] 
+    # label_embed: [batch_size, seq_len, num_label, num_hidden]
     #
-    # output: [seq_len, batch_size, num_label, num_hidden]
-    data = mx.sym.Reshape(data=data, shape=(seq_len, -1, 1, num_hidden))
+    # output: [batch_size, seq_len, num_label, num_hidden]
+    data = mx.sym.Reshape(data=data, shape=(-1, 1, num_hidden))
+    label_embed = mx.sym.Reshape(data=label_embed, shape=(-1, num_label, num_hidden))
     pred = mx.sym.broadcast_mul(data, label_embed)
 
-    # [seq_len, batch_size, num_label]
-    pred = mx.sym.sum(data=pred, axis=3)
+    # [batch_size, seq_len, num_label]
+    pred = mx.sym.sum(data=pred, axis=2)
+
+    label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label))
 
     # pred: [seq_len, batch_sie, num_label]
-    # label_weight: [seq_len, batch_size, num_label]
-    # output: [seq_len, batch_size, num_label]
+    # label_weight: [batch_size, seq_len, num_label]
+    # output: [batch_size, seq_len, num_label]
     return mx.sym.LogisticRegressionOutput(data = pred, label = label_weight)
 
 

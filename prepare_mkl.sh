@@ -83,11 +83,13 @@ if [ -z $MKLROOT ]; then
 fi
 
 # Check what MKL lib we have in MKLROOT
-if [ -z `find $MKLROOT -name libmklml_gnu.so -print -quit` ]; then
+set -x
+if [ -z `find -L $HOME_MKL -name libmklml_gnu.so -print -quit` ]; then
   USE_MKLML=0
-elif [ -z `find $MKLROOT -name libmkl_core.so -print -quit` ]; then
+elif [ -z `find -L $HOME_MKL -name libmkl_core.so -print -quit` ]; then
   USE_MKLML=1
 fi
+set +x
 
 # return value to calling script (Makefile,cmake)
 echo $MKLROOT $USE_MKLML
