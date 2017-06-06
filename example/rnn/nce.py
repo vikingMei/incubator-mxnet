@@ -200,13 +200,15 @@ class LMNceIter(DataIter):
 
         self.prepare()
 
-    def reset(self):
-        pass
 
-    def prepare(self):
+    def reset(self):
         self.curr_idx = 0
         # shuffle index
         random.shuffle(self.idx)
+
+
+    def prepare(self):
+        self.reset()
 
         # shuffle sentences in a bucket  
         for buck in self.data:
