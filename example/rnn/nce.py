@@ -201,6 +201,7 @@ class LMNceIter(DataIter):
         self.reset()
 
     def reset(self):
+        print("reset")
         self.curr_idx = 0
         # shuffle index
         random.shuffle(self.idx)
@@ -222,6 +223,7 @@ class LMNceIter(DataIter):
         self.ndlabel_weight = []
 
         negLen = len(negbuf) 
+
         for buck in self.data:
             # buck is a list of list(sentences), each row stand for a sentences
             #
@@ -233,6 +235,7 @@ class LMNceIter(DataIter):
             #   2: num_label 
             buckLab = []
             buckLabWgt = []
+
             for sent in buck:
                 shape = (len(sent), self.num_label)
 
@@ -240,14 +243,15 @@ class LMNceIter(DataIter):
                 wgt[:, 0] = 1
                 buckLabWgt.append(wgt)
 
-                label = np.full(shape, self.invalid_label) 
-                for i,wrd in enumerate(sent):
-                    label[i][0] = wrd
+                label = np.full(shape, self.invalid_label)
+                label[:-1,0] = sent[1:]
 
+                for i,wrd in enumerate(sent):
                     # negative sample
                     j = 1
                     while j<self.num_label:
                         val = np.random.randint(negLen)
+                        val = negbuf[val]
                         if val!=wrd:
                             label[i][j] = val
                             j+= 1
