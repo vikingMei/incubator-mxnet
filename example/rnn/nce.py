@@ -15,6 +15,16 @@ from mxnet import ndarray
 from mxnet.metric import EvalMetric
 from mxnet.io import DataIter, DataBatch
 
+@mx.init.register
+class MyConstant(mx.init.Initializer):
+    def __init__(self, value):
+        super(MyConstant, self).__init__(value=value)
+        self.value = value
+
+    def _init_weight(self, _, arr):
+        arr[:] = mx.nd.array(self.value)
+
+
 class NceMetric(EvalMetric):
     def __init__(self, ignore_label, axis=-1):
         super(NceMetric, self).__init__('NCE')
@@ -38,18 +48,35 @@ class NceMetric(EvalMetric):
         probs = []
 
         for pred,lab in zip(preds, labels):
+            # p*log(q) + (1-p)*log(1-q)
             lab = lab.reshape(shape=(-1, num_label)).as_in_context(pred.context)
-            flag = 1-(lab==self.ignore_label)
-            loss += -ndarray.sum(pred*flag).asnumpy()[0]
 
-        loss /= (shape[1]*shape[2])
+            print('\n\npred.size: ', pred.size) 
+            print('\n\npred: ', pred) 
+            print('\n\npred.asnumpy: ')
+            for item in pred:
+                print('\t item: ', item.asnumpy())
 
-        self.sum_metric += loss
-        self.num_inst += 1
+            if self.ignore_label is not None:
+                flag = (lab==self.ignore_label)
+                pred = pred*(1-flag) 
+                num -= ndarray.sum(flag).asscalar()
+
+            print('\n\nmask pred: ', pred) 
+            print('\n\nmask pred.asnumpy: ')
+            for item in pred:
+                print('\t mask item: ', item.asnumpy())
+
+            print('\n\nsum: ', -ndarray.sum(pred), -ndarray.sum(pred).asnumpy(), -ndarray.sum(pred).asscalar() )
+            num += pred.size
+            loss += -ndarray.sum(pred).asscalar()
+
+        self.sum_metric += loss/shape[2]
+        self.num_inst += num/shape[2] 
+        print('\n\nfinal res: ', pred.size, loss, num, self.sum_metric, self.num_inst)
 
 
-
-def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, num_label, seq_len):
+def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, num_label, seq_len, pad_label):
     """
     data format: NT
 
@@ -79,13 +106,19 @@ def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, nu
     # [batch_size, seq_len, num_label]
     pred = mx.sym.sum(data=pred, axis=2)
 
+    # mask out pad data
+    # label = mx.sym.Reshape(data=label, shape=(-1, num_label))
+    # pad_label = mx.sym.Variable('pad_label', shape=(1,), init=MyConstant([pad_label]))
+    # flag = mx.sym.broadcast_not_equal(lhs=label, rhs=pad_label)
+    # pred = pred*flag 
+
     label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label))
 
-    # pred: [seq_len, batch_sie, num_label]
-    # label_weight: [batch_size, seq_len, num_label]
-    # output: [batch_size, seq_len, num_label]
-    return mx.sym.LogisticRegressionOutput(data = pred, label = label_weight)
+    # p*log(q) + (1-p)*log(1-q)
+    pred = mx.sym.Activation(data=pred, act_type='sigmoid')
+    pred = label_weight * mx.sym.log(pred) + (1 - label_weight) * mx.sym.log(1 - pred)
 
+    return mx.sym.MakeLoss(pred)
 
 class LMNceIter(DataIter):
     """
@@ -101,8 +134,8 @@ class LMNceIter(DataIter):
     - batch_size : int 
         batch_size of data
 
-    - invalid_label : int 
-        default -1,  key for invalid label, e.g. <end-of-sentence>
+    - pad_label : int 
+        default -1,  key for invalid label, used for pending
 
     - dtype : str, default 'float32'
         data type
@@ -123,7 +156,7 @@ class LMNceIter(DataIter):
     - freq: list of int
         frequence of each word
     """
-    def __init__(self, sentences, batch_size, freq, buckets=None, invalid_label=-1,
+    def __init__(self, sentences, batch_size, freq, buckets=None, pad_label=-1,
                  data_name='data', label_name='label', dtype='float32',
                  layout='NTC', num_label=5):
         super(DataIter, self).__init__()
@@ -144,7 +177,7 @@ class LMNceIter(DataIter):
             if buck == len(buckets):
                 ndiscard += 1
                 continue
-            buff = np.full((buckets[buck],), invalid_label, dtype='int64')
+            buff = np.full((buckets[buck],), pad_label, dtype='int64')
             buff[:len(sent)] = sent
             self.data[buck].append(buff)
 
@@ -162,7 +195,7 @@ class LMNceIter(DataIter):
         self.label_weight_name = "%s_weight" % label_name 
 
         self.num_label = num_label
-        self.invalid_label = invalid_label
+        self.pad_label = pad_label
 
         self.nddata = []
         self.ndlabel = []
@@ -204,23 +237,22 @@ class LMNceIter(DataIter):
     def reset(self):
         self.curr_idx = 0
         # shuffle index
-        random.shuffle(self.idx)
+        #random.shuffle(self.idx)
 
 
     def prepare(self):
         self.reset()
 
         # shuffle sentences in a bucket  
-        for buck in self.data:
-            np.random.shuffle(buck)
+        # for buck in self.data:
+        #     np.random.shuffle(buck)
 
         # buffer for negtive sample
-        negbuf = [int(np.power(i, 0.75)) for i in self.freq]
         negbuf = []
-        for i in self.freq:
-            val = int(np.power(i, 0.75))
-            negbuf.extend(np.full(val, i))
-        random.shuffle(negbuf)
+        for i,cnt in self.freq.items():
+            cnt = int(np.power(cnt, 0.75))
+            negbuf.extend(np.full(cnt, i))
+        #random.shuffle(negbuf)
 
         self.nddata = []
         self.ndlabel = []
@@ -247,18 +279,23 @@ class LMNceIter(DataIter):
                 wgt[:, 0] = 1
                 buckLabWgt.append(wgt)
 
-                label = np.full(shape, self.invalid_label)
+                label = np.full(shape, self.pad_label)
                 label[:-1,0] = sent[1:]
 
                 for i,wrd in enumerate(sent):
-                    # negative sample
-                    j = 1
-                    while j<self.num_label:
+                    truelab = label[i][0]
+                    if truelab==self.pad_label:
+                        break
+
+                    # unique negative sample
+                    valset = {truelab: 1}
+                    while len(valset)<self.num_label:
                         val = np.random.randint(negLen)
                         val = negbuf[val]
                         if val!=wrd:
-                            label[i][j] = val
-                            j+= 1
+                            valset[val] = 1
+                    valset.pop(truelab)
+                    label[i, 1:] = valset.keys()
                 buckLab.append(label)
 
 	    # data format: NT
@@ -270,12 +307,13 @@ class LMNceIter(DataIter):
             self.ndlabel.append(ndarray.array(buckLab, dtype=self.dtype))
             self.ndlabel_weight.append(ndarray.array(buckLabWgt, dtype=self.dtype))
 
-    def next(self):
+    def next(self, i=None, j=None):
         if self.curr_idx == len(self.idx):
             raise StopIteration
-        i, j = self.idx[self.curr_idx]
-        self.curr_idx += 1
-        # print('sample iter: ', i, j)
+        if i is None or j is None:
+            i, j = self.idx[self.curr_idx]
+            self.curr_idx += 1
+        print('sample iter: ', i, j)
 
 	step = self.batch_size
         if self.major_axis == 1:

@@ -13,20 +13,23 @@ def tokenize_text(fname, vocab=None, invalid_label=-1, start_label=0):
     RETURN:
         sentences: list of id list
         vocab: dict, word to id map 
-        freq: list, frequence of each word
+        freq: dict, frequence of each word
     """
     # read whole file, ans split each line into an word array
     lines = open(fname).readlines()
-    lines = [filter(None, i.split(' ')) for i in lines]
+    lines = [['<s>'] +filter(None, i.split(' ')) for i in lines]
 
     # map word list into id list
     sentences, vocab = mx.rnn.encode_sentences(lines, vocab=vocab, invalid_label=invalid_label, start_label=start_label)
 
     # get frequence of eacho word 
-    freq = [0]*len(vocab)
+    freq = {}
     for line in sentences:
         for val in line:
-            freq[val] += 1
+            if val not in freq:
+                freq[val] = 1
+            else:
+                freq[val] += 1
 
     return sentences, vocab, freq
 

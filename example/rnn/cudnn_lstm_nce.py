@@ -11,64 +11,44 @@ from mxnet.base import MXNetError
 
 from nce import nce_loss, LMNceIter, NceMetric
 from utils import tokenize_text
+from lstm_nce import train_sym_gen, test_sym_gen
 
-start_label = 1
-invalid_label = 0
+pad_label = 0
+inv_label = 1
+start_label = 2
 
 buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
 
 def train(args):
     layout = 'NT'
-    train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=invalid_label)
-    val_sent, _, _ = tokenize_text(args.valid_data, vocab=vocab, start_label=start_label, invalid_label=invalid_label)
+    train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
+    assert None==vocab.get(''), "'' shouldn't appeare in sentences"
+    vocab[''] = pad_label
+
+    # NOTE: in this function, will encode word that not in vocab build from train set and extend vocab, 
+    # which may be undesired
+    val_sent, _, _ = tokenize_text(args.valid_data, vocab=vocab, start_label=start_label, invalid_label=inv_label)
 
     # layout, format of data and label. 'NT' means (batch_size, length) and 'TN' means (length, batch_size).
     data_train  = LMNceIter(train_sent, args.batch_size, freq, 
                             layout=layout,
                             buckets=buckets, 
-                            invalid_label=invalid_label, 
+                            pad_label=pad_label, 
                             num_label=args.num_label)
 
     data_val = LMNceIter(val_sent, args.batch_size, freq, 
                             layout=layout,
                             buckets=buckets, 
-                            invalid_label=invalid_label, 
+                            pad_label=pad_label, 
                             num_label=args.num_label)
-
-    cell = mx.rnn.SequentialRNNCell()
-    for i in range(args.num_layers):
-        cell.add(mx.rnn.LSTMCell(num_hidden=args.num_hidden, prefix='lstm_l%d_'%i))
-
-    def sym_gen(seq_len):
-        # [batch_size, seq_len]
-        data = mx.sym.Variable('data')
-
-        # map input to a embeding vector
-        embedIn = mx.sym.Embedding(data=data, input_dim=len(vocab), output_dim=args.num_embed,name='input_embed')
-
-        # pass embedding vector to lstm
-        # [batch_size, seq_len, num_hidden]
-        output, _ = cell.unroll(seq_len, inputs=embedIn, layout='NTC', merge_outputs=True)
-        #output = output.reshape(-1, num_embed)
-
-        # map label to embeding
-        label = mx.sym.Variable('label')
-        labwgt = mx.sym.Variable('label_weight')
-
-        # define output embeding matrix
-        #
-        # TODO: change to adapter binding
-        embedwgt = mx.sym.Variable(name='output_embed_weight', shape=(len(vocab), args.num_hidden))
-        pred = nce_loss(output, label, labwgt, embedwgt, len(vocab), args.num_hidden, args.num_label, seq_len)
- 
-        return pred, ('data',), ('label', 'label_weight')
 
     if args.gpus:
         contexts = [mx.gpu(int(i)) for i in args.gpus.split(',')]
     else:
         contexts = mx.cpu(0)
 
+    cell,sym_gen = train_sym_gen(args, len(vocab), pad_label)
     model = mx.mod.BucketingModule(
         sym_gen             = sym_gen,
         default_bucket_key  = data_train.default_bucket_key,
@@ -79,7 +59,9 @@ def train(args):
             cell, args.model_prefix, args.load_epoch)
     else:
         arg_params = None
-        aux_params = None
+        aux_params = {}
+
+    aux_params['pad_label'] = mx.nd.array([pad_label])
 
     opt_params = {
       'learning_rate': args.lr,
@@ -92,7 +74,7 @@ def train(args):
     model.fit(
         train_data          = data_train,
         eval_data           = data_val,
-        eval_metric         = NceMetric(invalid_label),
+        eval_metric         = NceMetric(pad_label),
         kvstore             = args.kv_store,
         optimizer           = args.optimizer,
         optimizer_params    = opt_params, 
@@ -104,6 +86,7 @@ def train(args):
         batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches),
         epoch_end_callback  = mx.rnn.do_rnn_checkpoint(cell, args.model_prefix, 1)
                               if args.model_prefix else None)
+
 
 def test(args):
     assert args.model_prefix, "Must specifiy path to load from"
@@ -119,49 +102,6 @@ def test(args):
             data_name='data',
             layout=layout)
 
-    if not args.stack_rnn:
-        stack = mx.rnn.FusedRNNCell(args.num_hidden, num_layers=args.num_layers,
-                mode='lstm', bidirectional=args.bidirectional).unfuse()
-    else:
-        stack = mx.rnn.SequentialRNNCell()
-        for i in range(args.num_layers):
-            cell = mx.rnn.LSTMCell(num_hidden=args.num_hidden, prefix='lstm_l%d_'%i)
-            stack.add(cell)
-
-    def sym_gen(seq_len):
-        data = mx.sym.Variable('data')
-        embed = mx.sym.Embedding(data=data, input_dim=len(vocab), output_dim=args.num_embed, name='input_embed')
-
-        stack.reset()
-
-        # [seq_len*batch_size, num_hidden]
-        outputs, states = stack.unroll(seq_len, inputs=embed, layout='TNC', merge_outputs=True)
-
-        # [seq_len*batch_size, 1, num_hidden] 
-        pred = mx.sym.Reshape(data=outputs, shape=(-1, 1, args.num_hidden*(1+args.bidirectional)))
-
-        # get output embedding
-        # TODO: this is a constant, initialize it only one-time 
-        #
-        # [vocab_size] -> [vocab_size, num_hidden]
-        allLab = mx.sym.Variable('alllab', shape=(len(vocab),), dtype='float32')
-        labs = mx.sym.Embedding(data=allLab, input_dim=len(vocab), output_dim=args.num_hidden, name='output_embed')
-
-        # pred: [seq_len*batch_size, 1, num_hidden] 
-        # labs: [vocab_size, num_hidden]
-        # output: [seq_len*batch_size, vocab_size, num_hidden]
-        pred = mx.sym.broadcast_mul(pred, labs)
-
-        # [seq_len*batch_size, vocab_size]
-        pred = mx.sym.sum(data=pred, axis=2)
-
-        label = mx.sym.Variable('label')
-        label = mx.sym.Reshape(label, shape=(-1,))
-
-        pred = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax')
-
-        return pred, ('data',), ('label',)
-
     if args.gpus:
         contexts = [mx.gpu(int(i)) for i in args.gpus.split(',')]
     else:
@@ -169,13 +109,12 @@ def test(args):
 
     # 定义一个模型，使用bucket方式进行训练
     model = mx.mod.BucketingModule(
-        sym_gen             = sym_gen,
+        sym_gen             = test_sym_gen,
         default_bucket_key  = data_test.default_bucket_key,
         context             = contexts)
 
     datashape = data_test.provide_data
     labelshape = data_test.provide_label
-    
     model.bind(datashape, labelshape, for_training=False)
 
     # note here we load using SequentialRNNCell instead of FusedRNNCell.
