@@ -42,7 +42,7 @@ fi
 if [[ ${mod} = 'test' ]]; then
     MOD='--test --load-epoch 18 --batch-size 1'
 elif [[ ${mod} = 'train' ]]; then
-    MOD='--batch-size 10 --num-epochs 10'
+    MOD='--batch-size 40 --num-epochs 30'
 else
     echo "invalid mod: [${mod}], only 'test' or 'train'(default) support"
     exit 0

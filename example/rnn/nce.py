@@ -224,22 +224,22 @@ class LMNceIter(DataIter):
     def reset(self):
         self.curr_idx = 0
         # shuffle index
-        #random.shuffle(self.idx)
+        random.shuffle(self.idx)
 
 
     def prepare(self):
         self.reset()
 
         # shuffle sentences in a bucket  
-        # for buck in self.data:
-        #     np.random.shuffle(buck)
+        for buck in self.data:
+            np.random.shuffle(buck)
 
         # buffer for negtive sample
         negbuf = []
         for i,cnt in self.freq.items():
             cnt = int(np.power(cnt, 0.75))
             negbuf.extend(np.full(cnt, i))
-        #random.shuffle(negbuf)
+        random.shuffle(negbuf)
 
         self.nddata = []
         self.ndlabel = []
