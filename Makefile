@@ -30,10 +30,11 @@ endif
 include $(config)
 
 ifeq ($(USE_MKL2017), 1)
-# must run ./prepare_mkl before including mshadow.mk
-	RETURN_STRING = $(shell ./prepare_mkl.sh $(MKLML_ROOT))
-	MKLROOT = $(firstword $(RETURN_STRING))
-	export USE_MKLML = $(lastword $(RETURN_STRING))
+    # must run ./prepare_mkl before including mshadow.mk
+    $(warning 'message: ', $(MKLML_ROOT))	
+    RETURN_STRING = $(shell ./prepare_mkl.sh $(MKLML_ROOT))
+    MKLROOT = $(firstword $(RETURN_STRING))
+    export USE_MKLML = $(lastword $(RETURN_STRING))
 endif
 
 include mshadow/make/mshadow.mk

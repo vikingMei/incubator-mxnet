@@ -35,9 +35,10 @@ class NceMetric(EvalMetric):
         """
         compute nce loss
         """
-        labwgt = [labels[1]]
-        labels = [labels[0]]
-        assert len(labels) == len(preds) == len(labwgt)
+        assert len(labels) == 2*len(preds)
+
+        labvals = [labels[0]]
+        labwgts = [labels[1]]
 
         # batch_size, seq_len, num_label
         shape = labels[0].shape
@@ -47,33 +48,23 @@ class NceMetric(EvalMetric):
         num = 0
         probs = []
 
-        for pred,lab in zip(preds, labels):
+        for pred,labval,labwgt in zip(preds, labvals, labwgts):
             # p*log(q) + (1-p)*log(1-q)
-            lab = lab.reshape(shape=(-1, num_label)).as_in_context(pred.context)
+            labval = labval.reshape(shape=(-1,num_label)).as_in_context(pred.context)
+            labwgt = labwgt.reshape(shape=(-1,num_label)).as_in_context(pred.context)
 
-            print('\n\npred.size: ', pred.size) 
-            print('\n\npred: ', pred) 
-            print('\n\npred.asnumpy: ')
-            for item in pred:
-                print('\t item: ', item.asnumpy())
-
+            # mask invalid label
+            pred = labwgt*ndarray.log(pred) + (1-labwgt)*ndarray.log(1-pred)
             if self.ignore_label is not None:
-                flag = (lab==self.ignore_label)
-                pred = pred*(1-flag) 
+                flag = (labval==self.ignore_label)
+                pred = pred*(1-flag)
                 num -= ndarray.sum(flag).asscalar()
 
-            print('\n\nmask pred: ', pred) 
-            print('\n\nmask pred.asnumpy: ')
-            for item in pred:
-                print('\t mask item: ', item.asnumpy())
-
-            print('\n\nsum: ', -ndarray.sum(pred), -ndarray.sum(pred).asnumpy(), -ndarray.sum(pred).asscalar() )
             num += pred.size
             loss += -ndarray.sum(pred).asscalar()
 
-        self.sum_metric += loss/shape[2]
-        self.num_inst += num/shape[2] 
-        print('\n\nfinal res: ', pred.size, loss, num, self.sum_metric, self.num_inst)
+        self.sum_metric += loss/num_label
+        self.num_inst += num/num_label
 
 
 def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, num_label, seq_len, pad_label):
@@ -107,18 +98,14 @@ def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, nu
     pred = mx.sym.sum(data=pred, axis=2)
 
     # mask out pad data
-    # label = mx.sym.Reshape(data=label, shape=(-1, num_label))
-    # pad_label = mx.sym.Variable('pad_label', shape=(1,), init=MyConstant([pad_label]))
-    # flag = mx.sym.broadcast_not_equal(lhs=label, rhs=pad_label)
-    # pred = pred*flag 
+    label = mx.sym.Reshape(data=label, shape=(-1, num_label))
+    pad_label = mx.sym.Variable('pad_label', shape=(1,), init=MyConstant([pad_label]))
+    flag = mx.sym.broadcast_not_equal(lhs=label, rhs=pad_label)
+    pred = pred*flag 
 
     label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label))
 
-    # p*log(q) + (1-p)*log(1-q)
-    pred = mx.sym.Activation(data=pred, act_type='sigmoid')
-    pred = label_weight * mx.sym.log(pred) + (1 - label_weight) * mx.sym.log(1 - pred)
-
-    return mx.sym.MakeLoss(pred)
+    return mx.sym.LogisticRegressionOutput(data=pred, label=label_weight)
 
 class LMNceIter(DataIter):
     """
@@ -277,7 +264,6 @@ class LMNceIter(DataIter):
 
                 wgt = np.zeros(shape)
                 wgt[:, 0] = 1
-                buckLabWgt.append(wgt)
 
                 label = np.full(shape, self.pad_label)
                 label[:-1,0] = sent[1:]
@@ -285,7 +271,8 @@ class LMNceIter(DataIter):
                 for i,wrd in enumerate(sent):
                     truelab = label[i][0]
                     if truelab==self.pad_label:
-                        break
+                        wgt[i, :] = 0.5
+                        continue
 
                     # unique negative sample
                     valset = {truelab: 1}
@@ -297,6 +284,8 @@ class LMNceIter(DataIter):
                     valset.pop(truelab)
                     label[i, 1:] = valset.keys()
                 buckLab.append(label)
+                buckLabWgt.append(wgt)
+
 
 	    # data format: NT
 	    # label format: NTL
@@ -313,7 +302,7 @@ class LMNceIter(DataIter):
         if i is None or j is None:
             i, j = self.idx[self.curr_idx]
             self.curr_idx += 1
-        print('sample iter: ', i, j)
+        #print('sample iter: ', i, j)
 
 	step = self.batch_size
         if self.major_axis == 1:

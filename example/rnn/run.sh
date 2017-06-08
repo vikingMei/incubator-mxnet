@@ -42,7 +42,7 @@ fi
 if [[ ${mod} = 'test' ]]; then
     MOD='--test --load-epoch 18 --batch-size 1'
 elif [[ ${mod} = 'train' ]]; then
-    MOD='--batch-size 40'
+    MOD='--batch-size 10 --num-epochs 10'
 else
     echo "invalid mod: [${mod}], only 'test' or 'train'(default) support"
     exit 0
@@ -55,9 +55,9 @@ echo "DEBUG: ${DEBUG}"
 SRC=./cudnn_lstm_nce.py
 python ${DEBUG} ${SRC} ${GPU} ${MOD} \
     --stack-rnn False --num-label 5 \
-    --train-data ./data/ptb.train.txt \
-    --valid-data ./data/ptb.valid.txt \
-    --test-data  ./data/ptb.test.txt \
+    --train-data ./data/train.txt \
+    --valid-data ./data/valid.txt \
+    --test-data  ./data/test.txt \
     --model-prefix ./model/lstm \
 
 #dot -Tpdf -o plot.pdf ./plot.gv

@@ -33,6 +33,9 @@ struct RegressionOutputParam : public dmlc::Parameter<RegressionOutputParam> {
 
 // Special Operator to output regression value in forward
 // And get gradient in calculation.
+//
+// ForwardOp: mshadow_op::sigmoid 
+// BackwardOp: mshadow::op::minus
 template<typename xpu, typename ForwardOp, typename BackwardOp>
 class RegressionOutputOp : public Operator {
  public:
@@ -50,6 +53,8 @@ class RegressionOutputOp : public Operator {
     Stream<xpu> *s = ctx.get_stream<xpu>();
     Tensor<xpu, 2> data = in_data[reg_enum::kData].FlatTo2D<xpu, real_t>(s);
     Tensor<xpu, 2> out = out_data[reg_enum::kOut].FlatTo2D<xpu, real_t>(s);
+
+    // 对于logisticregressionoutput， Forwardop=mshadow_p::sigmoid, 相当于对输入做了一个sigmoid激活
     Assign(out, req[reg_enum::kOut], F<ForwardOp>(data));
   }
 

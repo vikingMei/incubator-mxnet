@@ -48,6 +48,8 @@ fi
 echo $VERSION_LINE  # Return Version Line
 }
 
+echo 'arguments:' $0
+
 # MKL
 HOME_MKL=$1
 if [ ! -d "$HOME_MKL" ]; then
@@ -83,13 +85,11 @@ if [ -z $MKLROOT ]; then
 fi
 
 # Check what MKL lib we have in MKLROOT
-set -x
 if [ -z `find -L $HOME_MKL -name libmklml_gnu.so -print -quit` ]; then
   USE_MKLML=0
 elif [ -z `find -L $HOME_MKL -name libmkl_core.so -print -quit` ]; then
   USE_MKLML=1
 fi
-set +x
 
 # return value to calling script (Makefile,cmake)
 echo $MKLROOT $USE_MKLML
