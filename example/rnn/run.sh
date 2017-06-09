@@ -40,7 +40,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 if [[ ${mod} = 'test' ]]; then
-    MOD='--test --load-epoch 18 --batch-size 1'
+    MOD='--test --load-epoch 25 --batch-size 1'
 elif [[ ${mod} = 'train' ]]; then
     MOD='--batch-size 40 --num-epochs 30'
 else
@@ -54,7 +54,7 @@ echo "DEBUG: ${DEBUG}"
 
 SRC=./cudnn_lstm_nce.py
 python ${DEBUG} ${SRC} ${GPU} ${MOD} \
-    --stack-rnn False --num-label 10 \
+    --stack-rnn False --num-label 50 \
     --train-data ./data/ptb.train.txt \
     --valid-data ./data/ptb.valid.txt \
     --test-data  ./data/ptb.test.txt \

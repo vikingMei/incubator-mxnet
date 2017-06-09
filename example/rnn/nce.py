@@ -49,12 +49,13 @@ class NceMetric(EvalMetric):
         probs = []
 
         for pred,labval,labwgt in zip(preds, labvals, labwgts):
+            labval = labval.as_in_context(pred.context)
+            labwgt = labwgt.as_in_context(pred.context)
+
             # p*log(q) + (1-p)*log(1-q)
-            labval = labval.reshape(shape=(-1,num_label)).as_in_context(pred.context)
-            labwgt = labwgt.reshape(shape=(-1,num_label)).as_in_context(pred.context)
+            pred = labwgt*ndarray.log(pred) + (1-labwgt)*ndarray.log(1-pred)
 
             # mask invalid label
-            pred = labwgt*ndarray.log(pred) + (1-labwgt)*ndarray.log(1-pred)
             if self.ignore_label is not None:
                 flag = (labval==self.ignore_label)
                 pred = pred*(1-flag)
@@ -90,20 +91,16 @@ def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, nu
     # label_embed: [batch_size, seq_len, num_label, num_hidden]
     #
     # output: [batch_size, seq_len, num_label, num_hidden]
-    data = mx.sym.Reshape(data=data, shape=(-1, 1, num_hidden))
-    label_embed = mx.sym.Reshape(data=label_embed, shape=(-1, num_label, num_hidden))
+    data = mx.sym.Reshape(data=data, shape=(-1, seq_len, 1, num_hidden))
     pred = mx.sym.broadcast_mul(data, label_embed)
 
     # [batch_size, seq_len, num_label]
-    pred = mx.sym.sum(data=pred, axis=2)
+    pred = mx.sym.sum(data=pred, axis=3)
 
     # mask out pad data
-    label = mx.sym.Reshape(data=label, shape=(-1, num_label))
     pad_label = mx.sym.Variable('pad_label', shape=(1,), init=MyConstant([pad_label]))
     flag = mx.sym.broadcast_not_equal(lhs=label, rhs=pad_label)
     pred = pred*flag 
-
-    label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label))
 
     return mx.sym.LogisticRegressionOutput(data=pred, label=label_weight)
 

@@ -93,11 +93,13 @@ def test(args):
 
     # generate data iterator
     layout = 'TN'
-    train_sent, vocab, _ = tokenize_text(args.train_data, start_label=start_label, invalid_label=invalid_label)
-    test_sent, _, _ = tokenize_text(args.test_data, vocab=vocab, start_label=start_label, invalid_label=invalid_label)
+    train_sent, vocab, _ = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
+    assert None==vocab.get(''), "'' shouldn't appeare in sentences"
+    vocab[''] = pad_label
+    test_sent, _, _ = tokenize_text(args.test_data, vocab=vocab, start_label=start_label, invalid_label=inv_label)
     data_test    = mx.rnn.BucketSentenceIter(test_sent, args.batch_size, 
             buckets=buckets,
-            invalid_label=invalid_label, 
+            invalid_label=inv_label, 
             label_name='label',
             data_name='data',
             layout=layout)
@@ -107,9 +109,11 @@ def test(args):
     else:
         contexts = mx.cpu(0)
 
+    sym_gen,cell = test_sym_gen (args, len(vocab)) 
+
     # 定义一个模型，使用bucket方式进行训练
     model = mx.mod.BucketingModule(
-        sym_gen             = test_sym_gen,
+        sym_gen             = sym_gen,
         default_bucket_key  = data_test.default_bucket_key,
         context             = contexts)
 
@@ -118,11 +122,11 @@ def test(args):
     model.bind(datashape, labelshape, for_training=False)
 
     # note here we load using SequentialRNNCell instead of FusedRNNCell.
-    _, arg_params, aux_params = mx.rnn.load_rnn_checkpoint(stack, args.model_prefix, args.load_epoch)
-    arg_params['alllab'] =  mx.ndarray.arange(len(vocab), dtype='float32').as_in_context(contexts)
+    _, arg_params, aux_params = mx.rnn.load_rnn_checkpoint(cell, args.model_prefix, args.load_epoch)
+    arg_params['alllab'] =  mx.ndarray.arange(1, len(vocab), dtype='float32').as_in_context(contexts)
     model.set_params(arg_params, aux_params)
 
-    model.score(data_test, mx.metric.Perplexity(invalid_label),
+    model.score(data_test, mx.metric.Perplexity(pad_label),
                 batch_end_callback=mx.callback.Speedometer(args.batch_size, 5))
 
 

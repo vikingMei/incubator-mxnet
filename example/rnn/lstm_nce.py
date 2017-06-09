@@ -67,7 +67,7 @@ def test_sym_gen(args, vocab_size):
         # TODO: this is a constant, initialize it only one-time 
         #
         # [vocab_size] -> [vocab_size, num_hidden]
-        allLab = mx.sym.Variable('alllab', shape=(vocab_size,), dtype='float32')
+        allLab = mx.sym.Variable('alllab', shape=(vocab_size-1,), dtype='float32')
         labs = mx.sym.Embedding(data=allLab, input_dim=vocab_size, output_dim=args.num_hidden, name='output_embed')
 
         # pred: [seq_len*batch_size, 1, num_hidden] 
@@ -85,4 +85,4 @@ def test_sym_gen(args, vocab_size):
 
         return pred, ('data',), ('label',)
 
-    return sym_gen
+    return sym_gen, stack
