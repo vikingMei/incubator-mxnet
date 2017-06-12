@@ -27,16 +27,22 @@ def train_sym_gen(args, vocab_size, pad_label):
 
         # map label to embeding
         label = mx.sym.Variable('label')
-        labwgt = mx.sym.Variable('label_weight')
 
-        # define output embeding matrix
-        #
-        # TODO: change to adapter binding
-        embedwgt = mx.sym.Variable(name='output_embed_weight', shape=(vocab_size, args.num_hidden))
-        pred = nce_loss(output, label, labwgt, embedwgt, vocab_size, args.num_hidden, args.num_label, seq_len, pad_label)
- 
-        return pred, ('data',), ('label', 'label_weight')
+        # project to vocab 
+        pred = mx.sym.Reshape(data=output, shape=(-1, args.num_hidden))
+        pred = mx.sym.FullyConnected(data=pred, num_hidden=vocab_size, name="project")
+
+        label = mx.sym.Reshape(data=label, shape=(-1,))
+        pred = mx.sym.SoftmaxOutput(data=pred, label=label)
+
+        return pred, ('data',), ('label',)
     
+        # define output embeding matrix
+        #labwgt = mx.sym.Variable('label_weight')
+        #embedwgt = mx.sym.Variable(name='output_embed_weight', shape=(vocab_size, args.num_hidden))
+        #pred = nce_loss(output, label, labwgt, embedwgt, vocab_size, args.num_hidden, args.num_label, seq_len, pad_label)
+        #return pred, ('data',), ('label', 'label_weight')
+
     return cell, sym_gen
 
 
@@ -48,40 +54,48 @@ def test_sym_gen(args, vocab_size):
     else:
         stack = mx.rnn.SequentialRNNCell()
         for i in range(args.num_layers):
-            cell = mx.rnn.LSTMCell(num_hidden=args.num_hidden, prefix='lstm_l%d_'%i)
-            stack.add(cell)
+            stack.add(mx.rnn.LSTMCell(num_hidden=args.num_hidden, prefix='lstm_l%d_'%i))
 
     def sym_gen(seq_len):
         data = mx.sym.Variable('data')
         embed = mx.sym.Embedding(data=data, input_dim=vocab_size, output_dim=args.num_embed, name='input_embed')
 
-        stack.reset()
-
-        # [seq_len*batch_size, num_hidden]
-        outputs, states = stack.unroll(seq_len, inputs=embed, layout='TNC', merge_outputs=True)
+        # [batch_size, seq_len, num_hidden]
+        pred, states = stack.unroll(seq_len, inputs=embed, layout='NTC', merge_outputs=True)
 
         # [seq_len*batch_size, 1, num_hidden] 
-        pred = mx.sym.Reshape(data=outputs, shape=(-1, 1, args.num_hidden*(1+args.bidirectional)))
+        #pred = mx.sym.Reshape(data=outputs, shape=(-1, 1, args.num_hidden*(1+args.bidirectional)))
 
         # get output embedding
         # TODO: this is a constant, initialize it only one-time 
         #
         # [vocab_size] -> [vocab_size, num_hidden]
-        allLab = mx.sym.Variable('alllab', shape=(vocab_size-1,), dtype='float32')
-        labs = mx.sym.Embedding(data=allLab, input_dim=vocab_size, output_dim=args.num_hidden, name='output_embed')
+        # allLab = mx.sym.Variable('alllab', shape=(vocab_size-1,), dtype='float32')
+        # labs = mx.sym.Embedding(data=allLab, input_dim=vocab_size, output_dim=args.num_hidden, name='output_embed')
 
-        # pred: [seq_len*batch_size, 1, num_hidden] 
-        # labs: [vocab_size, num_hidden]
-        # output: [seq_len*batch_size, vocab_size, num_hidden]
-        pred = mx.sym.broadcast_mul(pred, labs)
+        # # [batch_size, seq_len, 1, num_hidden] 
+        # pred = mx.sym.Reshape(data=pred, shape=(-1, 1, args.num_hidden))
 
-        # [seq_len*batch_size, vocab_size]
-        pred = mx.sym.sum(data=pred, axis=2)
+        # # labs: [vocab_size, num_hidden]
+        # # output: [batch_size*seq_len, vocab_size, num_hidden]
+        # pred = mx.sym.broadcast_mul(pred, labs)
 
-        label = mx.sym.Variable('label')
-        label = mx.sym.Reshape(label, shape=(-1,))
+        # # [batch_size*seq_len, vocab_size]
+        # pred = mx.sym.sum(data=pred, axis=2)
+        # pred = mx.sym.sigmoid(data=pred)
 
-        pred = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax')
+        # label = mx.sym.Variable('label')
+        # label = mx.sym.Reshape(data=label, shape=(-1,))
+
+        # pred = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax')
+
+        pred = mx.sym.Reshape(data=pred, shape=(-1, args.num_hidden))
+        pred = mx.sym.FullyConnected(data=pred, num_hidden=vocab_size, name="project")
+
+        label = mx.sym.Variable('label') 
+        label = mx.sym.Reshape(data=label, shape=(-1,))
+
+        pred = mx.sym.SoftmaxOutput(data=pred,label=label)
 
         return pred, ('data',), ('label',)
 

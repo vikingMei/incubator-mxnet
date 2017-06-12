@@ -49,7 +49,7 @@ parser.add_argument('--dropout', type=float, default='0.0',
                     help='dropout probability (1.0 - keep probability)')
 
 #buckets = [32]
-buckets = [10, 20, 30, 40, 50, 60]
+buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
 start_label = 1
 invalid_label = 0

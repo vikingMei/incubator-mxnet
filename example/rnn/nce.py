@@ -31,10 +31,11 @@ class NceMetric(EvalMetric):
         self.ignore_label = ignore_label
         self.axis = axis
 
-    def update(self, labels, preds):
+    def update(self, labels, preds, model=None):
         """
         compute nce loss
         """
+        print(model)
         assert len(labels) == 2*len(preds)
 
         labvals = [labels[0]]
@@ -86,6 +87,8 @@ def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, nu
     label_embed = mx.sym.Embedding(data = label, weight=embed_weight, 
                                    input_dim = vocab_size,
                                    output_dim = num_hidden, name = 'output_embed')
+
+    rawpred = mx.sym.FullyConnected(data=data, num_hidden=vocab_size, name='rawpred')
 
     # data: [batch_size, seq_len, num_hidden] 
     # label_embed: [batch_size, seq_len, num_label, num_hidden]

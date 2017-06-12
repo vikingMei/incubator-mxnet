@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import sys
+import json
 import argparse
 
 import numpy as np
@@ -26,22 +27,43 @@ def train(args):
     assert None==vocab.get(''), "'' shouldn't appeare in sentences"
     vocab[''] = pad_label
 
+    with open('vocab.json', 'w') as fid:
+        fid.write(json.dumps(vocab))
+
+    with open('freq.json', 'w') as fid:
+        fid.write(json.dumps(freq))
+
+    sys.exit(0)
+
     # NOTE: in this function, will encode word that not in vocab build from train set and extend vocab, 
     # which may be undesired
     val_sent, _, _ = tokenize_text(args.valid_data, vocab=vocab, start_label=start_label, invalid_label=inv_label)
 
     # layout, format of data and label. 'NT' means (batch_size, length) and 'TN' means (length, batch_size).
-    data_train  = LMNceIter(train_sent, args.batch_size, freq, 
-                            layout=layout,
-                            buckets=buckets, 
-                            pad_label=pad_label, 
-                            num_label=args.num_label)
+    #data_train  = LMNceIter(train_sent, args.batch_size, freq, 
+    #                        layout=layout,
+    #                        buckets=buckets, 
+    #                        pad_label=pad_label, 
+    #                        num_label=args.num_label)
 
-    data_val = LMNceIter(val_sent, args.batch_size, freq, 
-                            layout=layout,
-                            buckets=buckets, 
-                            pad_label=pad_label, 
-                            num_label=args.num_label)
+    #data_val = LMNceIter(val_sent, args.batch_size, freq, 
+    #                        layout=layout,
+    #                        buckets=buckets, 
+    #                        pad_label=pad_label, 
+    #                        num_label=args.num_label)
+    data_train = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, 
+            buckets=buckets,
+            invalid_label=pad_label, 
+            label_name='label',
+            data_name='data',
+            layout=layout)
+
+    data_val = mx.rnn.BucketSentenceIter(val_sent, args.batch_size, 
+            buckets=buckets,
+            invalid_label=pad_label, 
+            label_name='label',
+            data_name='data',
+            layout=layout)
 
     if args.gpus:
         contexts = [mx.gpu(int(i)) for i in args.gpus.split(',')]
@@ -74,7 +96,7 @@ def train(args):
     model.fit(
         train_data          = data_train,
         eval_data           = data_val,
-        eval_metric         = NceMetric(pad_label),
+        eval_metric         = mx.metric.Perplexity(pad_label), #NceMetric(pad_label),
         kvstore             = args.kv_store,
         optimizer           = args.optimizer,
         optimizer_params    = opt_params, 
@@ -92,7 +114,7 @@ def test(args):
     assert args.model_prefix, "Must specifiy path to load from"
 
     # generate data iterator
-    layout = 'TN'
+    layout = 'NT'
     train_sent, vocab, _ = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
     assert None==vocab.get(''), "'' shouldn't appeare in sentences"
     vocab[''] = pad_label
@@ -126,8 +148,10 @@ def test(args):
     arg_params['alllab'] =  mx.ndarray.arange(1, len(vocab), dtype='float32').as_in_context(contexts)
     model.set_params(arg_params, aux_params)
 
-    model.score(data_test, mx.metric.Perplexity(pad_label),
-                batch_end_callback=mx.callback.Speedometer(args.batch_size, 5))
+    score = model.score(data_test, mx.metric.Perplexity(pad_label),
+                batch_end_callback=mx.callback.Speedometer(args.batch_size, 5, False))
+
+    print "final ppl: ", score
 
 
 if __name__ == '__main__':
