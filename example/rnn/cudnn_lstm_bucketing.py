@@ -67,9 +67,9 @@ def get_data(layout):
                                 invalid_label=invalid_label)
 
     data_train  = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, buckets=buckets,
-                                            invalid_label=invalid_label, layout=layout)
+                                            invalid_label=invalid_label, layout=layout, label_name="label")
     data_val    = mx.rnn.BucketSentenceIter(val_sent, args.batch_size, buckets=buckets,
-                                            invalid_label=invalid_label, layout=layout)
+                                            invalid_label=invalid_label, layout=layout, label_name="label")
     return data_train, data_val, vocab
 
 
@@ -89,7 +89,7 @@ def train(args):
 
     def sym_gen(seq_len):
         data = mx.sym.Variable('data')
-        label = mx.sym.Variable('softmax_label')
+        label = mx.sym.Variable('label')
         embed = mx.sym.Embedding(data=data, input_dim=len(vocab), output_dim=args.num_embed,name='embed')
 
         output, _ = cell.unroll(seq_len, inputs=embed, merge_outputs=True, layout='TNC')
@@ -101,7 +101,7 @@ def train(args):
         label = mx.sym.Reshape(label, shape=(-1,))
         pred = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax')
 
-        return pred, ('data',), ('softmax_label',)
+        return pred, ('data',), ('label',)
 
     if args.gpus:
         contexts = [mx.gpu(int(i)) for i in args.gpus.split(',')]
@@ -164,7 +164,7 @@ def test(args):
 
     def sym_gen(seq_len):
         data = mx.sym.Variable('data')
-        label = mx.sym.Variable('softmax_label')
+        label = mx.sym.Variable('label')
         embed = mx.sym.Embedding(data=data, input_dim=len(vocab),
                                  output_dim=args.num_embed, name='embed')
 
@@ -178,7 +178,7 @@ def test(args):
         label = mx.sym.Reshape(label, shape=(-1,))
         pred = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax')
 
-        return pred, ('data',), ('softmax_label',)
+        return pred, ('data',), ('label',)
 
     if args.gpus:
         contexts = [mx.gpu(int(i)) for i in args.gpus.split(',')]

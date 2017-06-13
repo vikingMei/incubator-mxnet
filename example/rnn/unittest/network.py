@@ -21,6 +21,7 @@ if "__main__"==__name__:
         num_embed = 200 
         num_label = 5
         batch_size = 1
+        dropout = 0
 
     dataIter = gen_toy_data()
 
@@ -34,7 +35,7 @@ if "__main__"==__name__:
     print '\nlabel: \n', data.label[0].asnumpy()
     print '\nlabel weight: \n', data.label[1].asnumpy()
 
-    mod = mx.mod.Module(symbol=net, context=mx.cpu(), data_names=data_name, label_names=label_name)
+    mod = mx.mod.Module(symbol=net, context=mx.gpu(0), data_names=data_name, label_names=label_name)
     mod.bind(data_shapes=dataIter.provide_data, label_shapes=dataIter.provide_label)
     mod.init_params(initializer=mx.init.Uniform(scale=.1))
     mod.init_optimizer(optimizer='sgd', optimizer_params=(('learning_rate', 0.1), ))

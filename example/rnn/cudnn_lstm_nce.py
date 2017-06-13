@@ -21,10 +21,16 @@ buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
 
 def train(args):
-    layout = 'NT'
+    layout = 'TN'
     train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
     assert None==vocab.get(''), "'' shouldn't appeare in sentences"
     vocab[''] = pad_label
+
+    with open('vocab.json', 'w') as fid:
+        fid.write(json.dumps(vocab))
+
+    with open('freq.json', 'w') as fid:
+        fid.write(json.dumps(freq))
 
     # NOTE: in this function, will encode word that not in vocab build from train set and extend vocab, 
     # which may be undesired
@@ -78,7 +84,7 @@ def train(args):
         kvstore             = args.kv_store,
         optimizer           = args.optimizer,
         optimizer_params    = opt_params, 
-        initializer         = mx.init.Xavier(factor_type="in", magnitude=2.34),
+        initializer         = mx.init.Xavier(factor_type="in", magnitude=0),
         arg_params          = arg_params,
         aux_params          = aux_params,
         begin_epoch         = args.load_epoch,
@@ -92,12 +98,19 @@ def test(args):
     assert args.model_prefix, "Must specifiy path to load from"
 
     # generate data iterator
-    layout = 'TN'
-    train_sent, vocab, _ = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
+    layout = 'NT'
+    train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
     assert None==vocab.get(''), "'' shouldn't appeare in sentences"
     vocab[''] = pad_label
-    test_sent, _, _ = tokenize_text(args.test_data, vocab=vocab, start_label=start_label, invalid_label=inv_label)
-    data_test    = mx.rnn.BucketSentenceIter(test_sent, args.batch_size, 
+
+    with open('vocab.json', 'w') as fid:
+        fid.write(json.dumps(vocab))
+
+    with open('freq.json', 'w') as fid:
+        fid.write(json.dumps(freq))
+
+    #test_sent, _, _ = tokenize_text(args.test_data, vocab=vocab, start_label=start_label, invalid_label=inv_label)
+    data_test    = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, 
             buckets=buckets,
             invalid_label=inv_label, 
             label_name='label',
@@ -123,7 +136,10 @@ def test(args):
 
     # note here we load using SequentialRNNCell instead of FusedRNNCell.
     _, arg_params, aux_params = mx.rnn.load_rnn_checkpoint(cell, args.model_prefix, args.load_epoch)
-    arg_params['alllab'] =  mx.ndarray.arange(1, len(vocab), dtype='float32').as_in_context(contexts)
+    if args.gpus:
+        arg_params['alllab'] =  mx.ndarray.arange(1, len(vocab), dtype='float32').as_in_context(contexts[0])
+    else:
+        arg_params['alllab'] =  mx.ndarray.arange(1, len(vocab), dtype='float32').as_in_context(contexts)
     model.set_params(arg_params, aux_params)
 
     model.score(data_test, mx.metric.Perplexity(pad_label),
@@ -169,7 +185,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--wd', type=float, default=0.00001, help='weight decay for sgd')
 
-    parser.add_argument('--batch-size', type=int, default=20, help='the batch size.')
+    parser.add_argument('--batch-size', type=int, default=32, help='the batch size.')
 
     parser.add_argument('--disp-batches', type=int, default=50, help='show progress for every n batches')
 

@@ -72,5 +72,5 @@ if "__main__"==__name__:
     # time: 0.021864
     #raw_iter(sent, batch_size, buckets, invlab)
 
-    numlab = 5
+    numlab = 50
     nce_iter(sent, batch_size, buckets, invlab, freq, "NT", numlab)

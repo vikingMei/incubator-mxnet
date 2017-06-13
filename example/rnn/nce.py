@@ -9,6 +9,8 @@ from __future__ import print_function
 import bisect
 import random
 import numpy as np
+import threading
+import multiprocessing as mp
 
 import mxnet as mx
 from mxnet import ndarray
@@ -49,8 +51,11 @@ class NceMetric(EvalMetric):
         probs = []
 
         for pred,labval,labwgt in zip(preds, labvals, labwgts):
+            #print(pred[0].asnumpy())
             labval = labval.as_in_context(pred.context)
+            labval = labval.reshape(pred.shape)
             labwgt = labwgt.as_in_context(pred.context)
+            labwgt = labwgt.reshape(pred.shape)
 
             # p*log(q) + (1-p)*log(1-q)
             pred = labwgt*ndarray.log(pred) + (1-labwgt)*ndarray.log(1-pred)
@@ -64,7 +69,7 @@ class NceMetric(EvalMetric):
             num += pred.size
             loss += -ndarray.sum(pred).asscalar()
 
-        self.sum_metric += loss/num_label
+        self.sum_metric += loss
         self.num_inst += num/num_label
 
 
@@ -87,22 +92,83 @@ def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, nu
                                    input_dim = vocab_size,
                                    output_dim = num_hidden, name = 'output_embed')
 
-    # data: [batch_size, seq_len, num_hidden] 
-    # label_embed: [batch_size, seq_len, num_label, num_hidden]
-    #
-    # output: [batch_size, seq_len, num_label, num_hidden]
-    data = mx.sym.Reshape(data=data, shape=(-1, seq_len, 1, num_hidden))
+    # [batch_size*seq_len, num_label, num_hidden]
+    label_embed = mx.sym.Reshape(data=label_embed, shape=(-1, num_label, num_hidden))
+
+    # [batch_size*seq_len, 1, num_hidden]
+    data = mx.sym.Reshape(data=data, shape=(-1, 1, num_hidden))
+
+    # [batch_size*seq_len, num_label, num_hidden]
     pred = mx.sym.broadcast_mul(data, label_embed)
 
-    # [batch_size, seq_len, num_label]
-    pred = mx.sym.sum(data=pred, axis=3)
+    # [batch_size*seq_len, num_label]
+    pred = mx.sym.sum(data=pred, axis=2)
+    pred = mx.sym.SoftmaxActivation(data=pred)
 
     # mask out pad data
     pad_label = mx.sym.Variable('pad_label', shape=(1,), init=MyConstant([pad_label]))
+    label = mx.sym.Reshape(data=label, shape=(-1,num_label))
     flag = mx.sym.broadcast_not_equal(lhs=label, rhs=pad_label)
+
     pred = pred*flag 
 
+    label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label))
     return mx.sym.LogisticRegressionOutput(data=pred, label=label_weight)
+
+
+
+class dataPrepareProcess(mp.Process):
+    """
+    sub-process used to papare data
+    """
+    def __init__(self, name, data, negbuf, num_label, pad_label, outq):
+        mp.Process.__init__(self)
+
+        self.name = name
+        self.data = data
+        self.negbuf= negbuf
+        self.num_label = num_label
+        self.pad_label = pad_label
+        self.outq = outq
+
+    def run(self):
+        output = { 'label': [], 'weight': [] }
+
+        neglen = len(self.negbuf)
+        sentcnt = 0
+        for sent in self.data:
+            sentcnt += 1
+            shape = (len(sent), self.num_label)
+
+            labwgt = np.zeros(shape)
+            labwgt[:, 0] = 1
+
+            label = np.full(shape, self.pad_label)
+            label[:-1,0] = sent[1:]
+
+            for i,wrd in enumerate(sent):
+                truelabel = label[i][0]
+                if truelabel==self.pad_label:
+                    labwgt[i:,] = 0.5
+                    break
+
+                # unique negative sample
+                valset = {truelabel: 1}
+                cnt = 0
+                while len(valset)<self.num_label:
+                    cnt += 1
+                    val = np.random.randint(neglen)
+                    val = self.negbuf[val]
+                    if val!=wrd:
+                        valset[val] = 1
+                valset.pop(truelabel)
+                label[i, 1:] = valset.keys()
+
+            output['label'].append(label)
+            output['weight'].append(labwgt)
+
+        self.outq.put_nowait(output)
+
 
 class LMNceIter(DataIter):
     """
@@ -256,33 +322,32 @@ class LMNceIter(DataIter):
             buckLab = []
             buckLabWgt = []
 
-            for sent in buck:
-                shape = (len(sent), self.num_label)
+            numProc = min(mp.cpu_count(), len(buck))
 
-                wgt = np.zeros(shape)
-                wgt[:, 0] = 1
+            if numProc>0:
+                procPoll = []
+                procStep = int(len(buck)/numProc)
 
-                label = np.full(shape, self.pad_label)
-                label[:-1,0] = sent[1:]
+                posData = 0
+                outq = mp.Queue(maxsize=numProc)
+                for i in range(0, numProc-1):
+                    ins = dataPrepareProcess('%03d' %i, buck[posData:posData+procStep], negbuf, self.num_label, self.pad_label, outq)
+                    ins.start()
+                    procPoll.append(ins)
+                    posData += procStep
 
-                for i,wrd in enumerate(sent):
-                    truelab = label[i][0]
-                    if truelab==self.pad_label:
-                        wgt[i, :] = 0.5
-                        continue
+                ins = dataPrepareProcess('%03d' % numProc, buck[posData:], negbuf, self.num_label, self.pad_label, outq)
+                ins.start()
+                procPoll.append(ins)
 
-                    # unique negative sample
-                    valset = {truelab: 1}
-                    while len(valset)<self.num_label:
-                        val = np.random.randint(negLen)
-                        val = negbuf[val]
-                        if val!=wrd:
-                            valset[val] = 1
-                    valset.pop(truelab)
-                    label[i, 1:] = valset.keys()
-                buckLab.append(label)
-                buckLabWgt.append(wgt)
+                for ins in procPoll:
+                    res = outq.get()
+                    if res:
+                        buckLab.extend(res['label'])
+                        buckLabWgt.extend(res['weight'])
 
+                for ins in procPoll:
+                    ins.join()
 
 	    # data format: NT
 	    # label format: NTL
@@ -292,6 +357,7 @@ class LMNceIter(DataIter):
             self.nddata.append(ndarray.array(buck, dtype=self.dtype))
             self.ndlabel.append(ndarray.array(buckLab, dtype=self.dtype))
             self.ndlabel_weight.append(ndarray.array(buckLabWgt, dtype=self.dtype))
+
 
     def next(self, i=None, j=None):
         if self.curr_idx == len(self.idx):
