@@ -78,6 +78,9 @@ def train(args):
     if args.optimizer not in ['adadelta', 'adagrad', 'adam', 'rmsprop']:
         opt_params['momentum'] = args.mom
 
+    def mymonitor(arr):
+        return arr
+
     model.fit(
         train_data          = data_train,
         eval_data           = data_val,
@@ -85,11 +88,12 @@ def train(args):
         kvstore             = args.kv_store,
         optimizer           = args.optimizer,
         optimizer_params    = opt_params, 
-        initializer         = mx.init.Xavier(factor_type="in", magnitude=0),
+        initializer         = mx.init.Xavier(factor_type="in", magnitude=2.34),
         arg_params          = arg_params,
         aux_params          = aux_params,
         begin_epoch         = args.load_epoch,
         num_epoch           = args.num_epochs,
+        #monitor             = mx.mon.Monitor(1, mymonitor),
         batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches),
         epoch_end_callback  = mx.rnn.do_rnn_checkpoint(cell, args.model_prefix, 1)
                               if args.model_prefix else None)

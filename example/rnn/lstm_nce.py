@@ -10,10 +10,10 @@ import mxnet as mx
 from nce import nce_loss, LMNceIter, NceMetric
 
 def train_sym_gen(args, vocab_size, pad_label):
+    cell = mx.rnn.FusedRNNCell(args.num_hidden, num_layers=args.num_layers, dropout=args.dropout, mode='lstm')
     #cell = mx.rnn.SequentialRNNCell()
     #for i in range(args.num_layers):
     #    cell.add(mx.rnn.LSTMCell(num_hidden=args.num_hidden, prefix='lstm_l%d_'%i))
-    cell = mx.rnn.FusedRNNCell(args.num_hidden, num_layers=args.num_layers, dropout=args.dropout, mode='lstm')
 
     def sym_gen(seq_len):
         # [batch_size, seq_len]
@@ -27,17 +27,21 @@ def train_sym_gen(args, vocab_size, pad_label):
         # [batch_size, seq_len, num_hidden]
         output, _ = cell.unroll(seq_len, inputs=embedIn, layout='TNC', merge_outputs=True)
 
-        # project to vocab 
-        # pred = mx.sym.Reshape(data=output, shape=(-1, args.num_hidden))
-        # pred = mx.sym.FullyConnected(data=pred, num_hidden=vocab_size, name="project")
-        # label = mx.sym.Reshape(data=label, shape=(-1,))
-        # pred = mx.sym.SoftmaxOutput(data=pred, label=label)
-        # return pred, ('data',), ('label',)
-    
         # define output embeding matrix
         labwgt = mx.sym.Variable('label_weight')
-        embedwgt = mx.sym.Variable(name='output_embed_weight', shape=(vocab_size, args.num_hidden))
+        embedwgt = mx.sym.Variable(name='label_embed_weight', shape=(vocab_size, args.num_hidden))
         pred = nce_loss(output, label, labwgt, embedwgt, vocab_size, args.num_hidden, args.num_label, seq_len, pad_label)
+
+        # add grad for internal layer
+        #outnames = pred.list_outputs()
+        #argnames = pred.list_arguments()
+
+        #intsyms = pred.get_internals()
+        #sym_group = [pred]
+        #for item in intsyms.list_outputs():
+        #    if item not in outnames and item not in argnames:
+        #        sym_group.append(mx.symbol.BlockGrad(intsyms[item], name=item))
+        #pred = mx.symbol.Group(sym_group)
         return pred, ('data',), ('label', 'label_weight')
 
     return cell, sym_gen
@@ -60,17 +64,17 @@ def test_sym_gen(args, vocab_size):
         stack.reset()
 
         # [seq_len*batch_size, num_hidden]
-        outputs, states = stack.unroll(seq_len, inputs=embed, layout='TNC', merge_outputs=True)
+        outputs, states = stack.unroll(seq_len, inputs=embed, layout='NTC', merge_outputs=True)
 
         # [batch_size*seq_len, 1, num_hidden] 
-        pred = mx.sym.Reshape(data=pred, shape=(-1, 1, args.num_hidden))
+        pred = mx.sym.Reshape(data=outputs, shape=(-1, 1, args.num_hidden))
 
         # get output embedding
         # TODO: this is a constant, initialize it only one-time 
         #
         # [vocab_size] -> [vocab_size, num_hidden]
         allLab = mx.sym.Variable('alllab', shape=(vocab_size-1,), dtype='float32')
-        labs = mx.sym.Embedding(data=allLab, input_dim=vocab_size, output_dim=args.num_hidden, name='output_embed')
+        labs = mx.sym.Embedding(data=allLab, input_dim=vocab_size, output_dim=args.num_hidden, name='label_embed')
 
         # labs: [vocab_size, num_hidden]
         # output: [batch_size*seq_len, vocab_size, num_hidden]
@@ -83,7 +87,6 @@ def test_sym_gen(args, vocab_size):
         label = mx.sym.Variable('label')
         label = mx.sym.Reshape(data=label, shape=(-1,))
 
-        #pred = mx.sym.LogisticRegressionOutput(data=pred, label=label)
         pred = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax')
 
         return pred, ('data',), ('label',)

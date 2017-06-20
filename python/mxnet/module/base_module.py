@@ -1,3 +1,4 @@
+# coding: utf-8
 # pylint: disable=fixme, too-many-arguments, too-many-locals, too-many-public-methods, too-many-branches
 """`BaseModule` defines an API for modules."""
 
@@ -455,10 +456,14 @@ class BaseModule(object):
         """
         assert num_epoch is not None, 'please specify number of epochs'
 
+        # 绑定数据大小，开辟对应的空间
         self.bind(data_shapes=train_data.provide_data, label_shapes=train_data.provide_label,
                   for_training=True, force_rebind=force_rebind)
+
+        # 安装监视器
         if monitor is not None:
             self.install_monitor(monitor)
+
         self.init_params(initializer=initializer, arg_params=arg_params, aux_params=aux_params,
                          allow_missing=allow_missing, force_init=force_init)
         self.init_optimizer(kvstore=kvstore, optimizer=optimizer,
@@ -481,12 +486,35 @@ class BaseModule(object):
             next_data_batch = next(data_iter)
             while not end_of_batch:
                 data_batch = next_data_batch
+                #if monitor is not None:
+                #    monitor.tic()
+                #    print('start batch, %d' % monitor.step)
+                #self.forward_backward(data_batch)
+
+                # 前向计算
                 if monitor is not None:
                     monitor.tic()
-                self.forward_backward(data_batch)
+                    print('start batch, %d' % monitor.step)
+                self.forward(data_batch, is_train=True)
+                if monitor is not None:
+                    monitor.toc_print()
+                    
+                # 反向计算
+                if monitor is not None:
+                    monitor.tic()
+                self.backward()
+                if monitor is not None:
+                    monitor.toc_print()
+
+                if monitor is not None:
+                    monitor.tic()
                 self.update()
+                if monitor is not None:
+                    monitor.toc_print()
+                    print('end batch: %d' % monitor.step)
                 try:
                     # pre fetch next batch
+                    # 提前准备，做到pipeline并行
                     next_data_batch = next(data_iter)
                     self.prepare(next_data_batch)
                 except StopIteration:
@@ -494,8 +522,8 @@ class BaseModule(object):
 
                 self.update_metric(eval_metric, data_batch.label)
 
-                if monitor is not None:
-                    monitor.toc_print()
+                #if monitor is not None:
+                #    monitor.toc_print()
 
                 if batch_end_callback is not None:
                     batch_end_params = BatchEndParam(epoch=epoch, nbatch=nbatch,

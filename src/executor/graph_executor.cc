@@ -13,6 +13,9 @@
 #include "./graph_executor.h"
 #include "../engine/profiler.h"
 
+#include <fstream>
+#include <iomanip>
+
 namespace mxnet {
 namespace exec {
 GraphExecutor::~GraphExecutor() {
@@ -1216,6 +1219,7 @@ void GraphExecutor::RunOps(bool is_train, size_t topo_start, size_t topo_end) {
       bool profiling = false;
 #endif
       Engine::Get()->Push(seg_op.opr, seg_op.ctx, 0, profiling);
+      //printf("push operator group [%03d]-[%03d]\n", seg_op.topo_start, seg_op.topo_end);
       nid = seg_op.topo_end - 1;
       continue;
     }
@@ -1236,10 +1240,59 @@ void GraphExecutor::RunOps(bool is_train, size_t topo_start, size_t topo_end) {
 #else
       bool profiling = false;
 #endif
+      //printf("push node [%03d]-[%s]\n", nid, opnode.opr_name);
       Engine::Get()->Push(opnode.cached_opr, opnode.ctx, 0, profiling);
     } else {
       LOG(FATAL) << "Not accessed";
     }
+
+    /*
+    if(strstr(opnode.opr_name, "_backward")) { // VIKING 
+        std::string name = inode.source->attrs.name;
+
+        // get name for each in_grad
+        static const auto& flist_outputs = nnvm::Op::GetAttr<nnvm::FListOutputNames>("FListOutputNames");
+        std::vector<std::string> output_names;
+        const auto& node = inode.source;
+        if (flist_outputs.count(node->op())) {
+            output_names = flist_outputs[node->op()](node->attrs);
+        } else {
+            for (size_t i = 0; i < node->num_outputs(); ++i) {
+                output_names.emplace_back(std::to_string(i));
+            }
+        }
+
+        int i;
+        for(i=0; i<opnode.exec->out_array.size(); ++i) {
+            NDArray cpy = opnode.exec->out_array[i].Copy(Context());
+            cpy.WaitToRead();
+
+            long sz = cpy.shape().Size();
+            long ndim = cpy.shape().ndim();
+            long step = cpy.shape()[ndim-1];
+
+            char fname[256] = {0};
+            sprintf(fname, "gradient/%s-%s", name.c_str(), output_names[i].c_str());
+
+            std::ofstream fs(fname, std::ofstream::app);
+            fs << "\n============new============\n";
+            fs << "NAME:" << fname << "\n";
+
+            long j;
+            float* ptr = (float*)cpy.data().dptr_; 
+            printf("write [%s]\n", fname);
+            for(j=0; j<sz; ++j) {
+                if(0==j%step) {
+                    fs << "\n" << static_cast<void*>(ptr+j) << "\t";
+                }
+                fs << std::setiosflags(std::ios_base::fixed) 
+                   << std::setprecision(20) << ptr[j] << ", " ;
+            }
+            fs << "\n";
+            fs.close();
+        }
+    } // VIKING
+    */
     // Monitor callbacks
     if (monitor_callback_) {
       ExecuteMonCallback(nid);

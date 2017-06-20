@@ -64,6 +64,17 @@ class ForwardOpExecutor : public OpExecutor {
   std::vector<TBlob> in_data_, out_data_, aux_data_;
 };
 
+
+void disp_dptr(const std::string& opname, const char* name, std::vector<TBlob>& data) {
+    int i,j,k;
+    printf("%s %s: ", opname.c_str(), name);
+    for(i=0; i<data.size(); ++i) {
+        printf("%p\t", data[i].dptr_);
+    }
+    printf("\n");
+}
+
+
 // backward executor
 class BackwardOpExecutor : public OpExecutor {
  public:
@@ -71,6 +82,10 @@ class BackwardOpExecutor : public OpExecutor {
     op_ctx.run_ctx = rctx;
     op_->Backward(op_ctx, out_grad_, in_data_, out_data_,
                   req, in_grad_, aux_data_);
+
+    //disp_dptr(this->name, "out_grad_", out_grad_);
+    //disp_dptr(this->name, "in_grad_", in_grad_);
+
 #if MKL_EXPERIMENTAL == 1
     mkl_tblobs_prv_to_cpu(out_grad_);
     mkl_tblobs_prv_to_cpu(in_data_);
@@ -99,6 +114,11 @@ class BackwardOpExecutor : public OpExecutor {
   Operator::ExecType exec_type() const override {
     return op_->exec_type();
   }
+
+  void set_opname(const std::string& name) {
+      this->name = name;
+  }
+
   explicit BackwardOpExecutor(std::shared_ptr<Operator> op,
                               const OperatorProperty* prop,
                               std::vector<uint32_t> aux_index)
@@ -124,6 +144,9 @@ class BackwardOpExecutor : public OpExecutor {
     arg_data_ptr_ = prop->BackwardInputs(
         out_grad_ptr, in_data_ptr, out_data_ptr);
   }
+
+ public:
+  std::string name;
 
  private:
   std::shared_ptr<Operator> op_;
@@ -231,6 +254,7 @@ Graph AttachOpExecs(Graph g) {
           dynamic_cast<ForwardOpExecutor*>(ret[fwd_id].get())->op_,
           mxnet::op::OpPropGetOpProperty(inode.source->attrs),
           mutate_index);
+      //dynamic_cast<BackwardOpExecutor*>(ret[i].get())->set_opname(inode.source->op()->name);
     } else if (fcompute != nullptr) {
       ret[i] = std::make_shared<FComputeExecutor>(fcompute, inode.source->attrs);
     } else {

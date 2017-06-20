@@ -7,7 +7,6 @@
 from __future__ import print_function
 
 import bisect
-import random
 import numpy as np
 import threading
 import multiprocessing as mp
@@ -16,6 +15,7 @@ import mxnet as mx
 from mxnet import ndarray
 from mxnet.metric import EvalMetric
 from mxnet.io import DataIter, DataBatch
+from logisticRegression import MyLogistic  
 
 @mx.init.register
 class MyConstant(mx.init.Initializer):
@@ -37,6 +37,9 @@ class NceMetric(EvalMetric):
         """
         compute nce loss
         """
+        # remove other internals output symbols
+        preds = [preds[0]]
+
         assert len(labels) == 2*len(preds)
 
         labvals = [labels[0]]
@@ -51,7 +54,7 @@ class NceMetric(EvalMetric):
         probs = []
 
         for pred,labval,labwgt in zip(preds, labvals, labwgts):
-            #print(pred[0].asnumpy())
+            #print('pred: ', pred.asnumpy())
             labval = labval.as_in_context(pred.context)
             labval = labval.reshape(pred.shape)
             labwgt = labwgt.as_in_context(pred.context)
@@ -67,7 +70,7 @@ class NceMetric(EvalMetric):
                 num -= ndarray.sum(flag).asscalar()
 
             num += pred.size
-            loss += -ndarray.sum(pred).asscalar()
+            loss -= ndarray.sum(pred).asscalar()
 
         self.sum_metric += loss
         self.num_inst += num/num_label
@@ -90,30 +93,32 @@ def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, nu
     # [batch_size, seq_len, num_label] ->  [batch_size, seq_len, num_label, num_hidden]
     label_embed = mx.sym.Embedding(data = label, weight=embed_weight, 
                                    input_dim = vocab_size,
-                                   output_dim = num_hidden, name = 'output_embed')
+                                   output_dim = num_hidden, name = 'label_embed')
 
     # [batch_size*seq_len, num_label, num_hidden]
-    label_embed = mx.sym.Reshape(data=label_embed, shape=(-1, num_label, num_hidden))
+    label_embed = mx.sym.Reshape(data=label_embed, shape=(-1, num_label, num_hidden), name='label_embed_reshape')
 
     # [batch_size*seq_len, 1, num_hidden]
-    data = mx.sym.Reshape(data=data, shape=(-1, 1, num_hidden))
+    data = mx.sym.Reshape(data=data, shape=(-1, 1, num_hidden), name='pred_reshape')
 
     # [batch_size*seq_len, num_label, num_hidden]
-    pred = mx.sym.broadcast_mul(data, label_embed)
+    pred = mx.sym.broadcast_mul(data, label_embed, name='pred_labemb_broadcast_mul')
 
     # [batch_size*seq_len, num_label]
-    pred = mx.sym.sum(data=pred, axis=2)
-    pred = mx.sym.SoftmaxActivation(data=pred)
+    pred = mx.sym.sum(data=pred, axis=2, name='pred_labemb_broadcast_mul_sum')
 
     # mask out pad data
     pad_label = mx.sym.Variable('pad_label', shape=(1,), init=MyConstant([pad_label]))
-    label = mx.sym.Reshape(data=label, shape=(-1,num_label))
-    flag = mx.sym.broadcast_not_equal(lhs=label, rhs=pad_label)
+    label = mx.sym.Reshape(data=label, shape=(-1,num_label), name='label_reshape')
+    flag = mx.sym.broadcast_not_equal(lhs=label, rhs=pad_label, name='mask_gen')
 
     pred = pred*flag 
 
-    label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label))
-    return mx.sym.LogisticRegressionOutput(data=pred, label=label_weight)
+    #pred = mx.sym.SoftmaxActivation(data=pred, name='pred_softmax_act')
+
+    label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label), name='labwgt_reshape')
+    return mx.sym.LogisticRegressionOutput(data=pred, label=label_weight, name='final_logistic')
+    #return mx.symbol.Custom(data=pred, label=label_weight, name='final_logistic', op_type='MyLogistic')
 
 
 
@@ -167,6 +172,7 @@ class dataPrepareProcess(mp.Process):
             output['label'].append(label)
             output['weight'].append(labwgt)
 
+        output['data'] = self.data
         self.outq.put_nowait(output)
 
 
@@ -287,7 +293,7 @@ class LMNceIter(DataIter):
     def reset(self):
         self.curr_idx = 0
         # shuffle index
-        random.shuffle(self.idx)
+        np.random.shuffle(self.idx)
 
 
     def prepare(self):
@@ -302,7 +308,7 @@ class LMNceIter(DataIter):
         for i,cnt in self.freq.items():
             cnt = int(np.power(cnt, 0.75))
             negbuf.extend(np.full(cnt, i))
-        random.shuffle(negbuf)
+        np.random.shuffle(negbuf)
 
         self.nddata = []
         self.ndlabel = []
@@ -320,6 +326,7 @@ class LMNceIter(DataIter):
             #   1: sentences length 
             #   2: num_label 
             buckLab = []
+            buckData = []
             buckLabWgt = []
 
             numProc = min(mp.cpu_count(), len(buck))
@@ -344,6 +351,7 @@ class LMNceIter(DataIter):
                     res = outq.get()
                     if res:
                         buckLab.extend(res['label'])
+                        buckData.extend(res['data'])
                         buckLabWgt.extend(res['weight'])
 
                 for ins in procPoll:
@@ -354,7 +362,7 @@ class LMNceIter(DataIter):
 	    # N: batch number
 	    # T: time stamp
 	    # L: label
-            self.nddata.append(ndarray.array(buck, dtype=self.dtype))
+            self.nddata.append(ndarray.array(buckData, dtype=self.dtype))
             self.ndlabel.append(ndarray.array(buckLab, dtype=self.dtype))
             self.ndlabel_weight.append(ndarray.array(buckLabWgt, dtype=self.dtype))
 
@@ -362,8 +370,10 @@ class LMNceIter(DataIter):
     def next(self, i=None, j=None):
         if self.curr_idx == len(self.idx):
             raise StopIteration
+
         if i is None or j is None:
             i, j = self.idx[self.curr_idx]
+            #i, j = self.idx[0]
             self.curr_idx += 1
         #print('sample iter: ', i, j)
 
@@ -378,6 +388,12 @@ class LMNceIter(DataIter):
             data = self.nddata[i][j:j+step]
             label = self.ndlabel[i][j:j+step]
             label_weight = self.ndlabel_weight[i][j:j+step]
+
+        #if 1==self.curr_idx:
+        #    print('data: ', data.asnumpy())
+        #    print('label: ', label.asnumpy()) 
+        #    print('label wgt: ', label_weight.asnumpy())
+        #    print(data.shape, label.shape, label_weight.shape, self.buckets[i])
 
         return DataBatch([data], [label, label_weight], pad=0,
                          bucket_key=self.buckets[i],

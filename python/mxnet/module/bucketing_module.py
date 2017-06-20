@@ -1,3 +1,4 @@
+# coding: utf-8
 # pylint: disable=too-many-instance-attributes, too-many-arguments, protected-access
 # pylint: disable=too-many-public-methods
 """A `BucketingModule` implement the `BaseModule` API, and allows multiple
@@ -36,6 +37,9 @@ class BucketingModule(BaseModule):
         States are similar to data and label, but not provided by data iterator.
         Instead they are initialized to 0 and can be set by set_states()
     """
+
+    # BucketingModule 可以看做是对普通Module做了一个wrap，里面使用一个数组__buckets来存储不同seq_len对应的
+    # 模型，并且根据输入的数据自动进行切换(这一点需要确认，从调试结果来看，当前不是这样的)
     def __init__(self, sym_gen, default_bucket_key=None, logger=logging,
                  context=ctx.cpu(), work_load_list=None,
                  fixed_param_names=None, state_names=None):
@@ -61,10 +65,20 @@ class BucketingModule(BaseModule):
         self._context = context
         self._work_load_list = work_load_list
 
+        # 用来存放bucket长度不同的model
         self._buckets = {}
+
+        # 当时使用的模型
         self._curr_module = None
+
+        # 当前使用的模型对应的seq_len
         self._curr_bucket_key = None
+
         self._params_dirty = False
+
+        self.monitor_set = set()
+
+        self.optimizer_params = None
 
     def _reset_bind(self):
         """Internal utility function to reset binding."""
@@ -289,6 +303,7 @@ class BucketingModule(BaseModule):
         self.inputs_need_grad = inputs_need_grad
         self.binded = True
 
+        # 没有数据输入的时候，直接生成长度为_default_bucket_key的模型
         symbol, data_names, label_names = self._sym_gen(self._default_bucket_key)
         module = Module(symbol, data_names, label_names, logger=self.logger,
                         context=self._context, work_load_list=self._work_load_list,
@@ -332,6 +347,13 @@ class BucketingModule(BaseModule):
         self._curr_module = self._buckets[bucket_key]
         self._curr_bucket_key = bucket_key
 
+        if self.optimizer_params  and self._curr_module._optimizer and 'rescale_grad' not in self.optimizer_params:
+            self._curr_module._optimizer.rescale_grad = 1.0/bucket_key
+
+        for mon in self.monitor_set:
+            mon.clear()
+            self._curr_module.install_monitor(mon)
+
     def init_optimizer(self, kvstore='local', optimizer='sgd',
                        optimizer_params=(('learning_rate', 0.01),),
                        force_init=False):
@@ -362,6 +384,7 @@ class BucketingModule(BaseModule):
                 mod.borrow_optimizer(self._curr_module)
 
         self.optimizer_initialized = True
+        self.optimizer_params = optimizer_params
 
     def prepare(self, data_batch):
         """Prepares a data batch for forward.
@@ -376,6 +399,8 @@ class BucketingModule(BaseModule):
         original_bucket_key = self._curr_bucket_key
         data_shapes = data_batch.provide_data
         label_shapes = data_batch.provide_label
+
+        # 这里来回切换的目的应该是为了保证bucket_key对应长度的模型已经生成完毕
         self.switch_bucket(bucket_key, data_shapes, label_shapes)
         # switch back
         self.switch_bucket(original_bucket_key, None, None)
@@ -470,5 +495,6 @@ class BucketingModule(BaseModule):
     def install_monitor(self, mon):
         """Installs monitor on all executors """
         assert self.binded
-        for mod in self._buckets.values():
-            mod.install_monitor(mon)
+        self.monitor_set.add(mon)
+        #for mod in self._buckets.values():
+        #    mod.install_monitor(mon)

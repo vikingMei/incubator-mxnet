@@ -53,6 +53,12 @@ class Monitor(object):
             self.queue.append((self.step, py_str(name), self.stat_func(array)))
         self.stat_helper = stat_helper
 
+    def clear(self):
+        """
+        remove all executor from current monitor
+        """
+        self.exes = []
+
     def install(self, exe):
         """install callback to executor.
         Supports installing to multiple exes.
@@ -93,13 +99,20 @@ class Monitor(object):
                 array.wait_to_read()
             for array in exe.aux_arrays:
                 array.wait_to_read()
+            for array in exe.grad_arrays:
+                if array is not None:
+                    array.wait_to_read()
         for exe in self.exes:
-            for name, array in zip(exe._symbol.list_arguments(), exe.arg_arrays):
+            for name, array in exe.arg_dict.items(): #zip(exe._symbol.list_arguments(), exe.arg_arrays):
                 if self.re_prog.match(name):
                     self.queue.append((self.step, name, self.stat_func(array)))
-            for name, array in zip(exe._symbol.list_auxiliary_states(), exe.aux_arrays):
+            for name, array in exe.aux_dict.items(): #zip(exe._symbol.list_auxiliary_states(), exe.aux_arrays):
                 if self.re_prog.match(name):
                     self.queue.append((self.step, name, self.stat_func(array)))
+            for name,array in exe.output_dict.items():
+                if self.re_prog.match(name) and array is not None:
+                    self.queue.append((self.step, name, array))
+
         self.activated = False
         res = []
         if self.sort:
@@ -111,6 +124,8 @@ class Monitor(object):
             s = ''
             for v in v_list:
                 assert isinstance(v, NDArray)
+                print('logs/%03d-%s.csv' % (n, k))
+                v.asnumpy().tofile('logs/%03d-%s.csv' % (n, k), sep='\n')
                 if v.shape == (1,):
                     s += str(v.asscalar()) + '\t'
                 else:
@@ -122,5 +137,5 @@ class Monitor(object):
     def toc_print(self):
         """End collecting and print results."""
         res = self.toc()
-        for n, k, v in res:
-            logging.info('Batch: {:7d} {:30s} {:s}'.format(n, k, v))
+        #for n, k, v in res:
+        #    logging.info('Batch: {:7d} {:30s} {:s}'.format(n, k, v))

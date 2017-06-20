@@ -74,6 +74,7 @@ class RegressionOutputOp : public Operator {
     Stream<xpu> *s = ctx.get_stream<xpu>();
     real_t num_output =
       in_data[reg_enum::kLabel].Size()/in_data[reg_enum::kLabel].shape_[0];
+    num_output = 1;
     Tensor<xpu, 2> out = out_data[reg_enum::kOut].FlatTo2D<xpu, real_t>(s);
     Tensor<xpu, 2> grad = in_grad[reg_enum::kData].FlatTo2D<xpu, real_t>(s);
     Tensor<xpu, 2> label = in_data[reg_enum::kLabel]
