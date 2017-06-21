@@ -24,3 +24,21 @@ DataDesc.layout: NCHW
     1. 数据输入格式: TN
     2. DataDecs.layout: NCHW, 会按照第一个维度切分, 与实际不符
     具体代码见: mxnet/module/executor_group.py, line 300左右
+
+## how to view each node
+
+```json
+    # add grad for internal layer
+    #outnames = pred.list_outputs()
+    #argnames = pred.list_arguments()
+
+    #intsyms = pred.get_internals()
+    #sym_group = [pred]
+    #for item in intsyms.list_outputs():
+    #    if item not in outnames and item not in argnames:
+    #        sym_group.append(mx.symbol.BlockGrad(intsyms[item], name=item))
+    #pred = mx.symbol.Group(sym_group)
+```
+
+1. define custom op 
+    mx.symbol.Custom(data=pred, label=label_weight, name='final_logistic', op_type='MyLogistic')

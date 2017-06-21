@@ -15,7 +15,8 @@ import mxnet as mx
 from mxnet import ndarray
 from mxnet.metric import EvalMetric
 from mxnet.io import DataIter, DataBatch
-from logisticRegression import MyLogistic  
+
+#np.random.seed(0)
 
 @mx.init.register
 class MyConstant(mx.init.Initializer):
@@ -32,6 +33,13 @@ class NceMetric(EvalMetric):
         super(NceMetric, self).__init__('NCE')
         self.ignore_label = ignore_label
         self.axis = axis
+
+    def get(self):
+        if self.num_inst == 0:
+            return (self.name, float('nan'))
+        else:
+            return (self.name, self.sum_metric / self.num_inst)
+
 
     def update(self, labels, preds):
         """
@@ -54,14 +62,14 @@ class NceMetric(EvalMetric):
         probs = []
 
         for pred,labval,labwgt in zip(preds, labvals, labwgts):
-            #print('pred: ', pred.asnumpy())
+            #pred.asnumpy().tofile('./logs/%05d', self.idx)
             labval = labval.as_in_context(pred.context)
             labval = labval.reshape(pred.shape)
             labwgt = labwgt.as_in_context(pred.context)
             labwgt = labwgt.reshape(pred.shape)
 
             # p*log(q) + (1-p)*log(1-q)
-            pred = labwgt*ndarray.log(pred) + (1-labwgt)*ndarray.log(1-pred)
+            pred = labwgt*ndarray.log(ndarray.maximum(1e-10, pred)) + (1-labwgt)*ndarray.log(ndarray.maximum(1e-10, 1-pred))
 
             # mask invalid label
             if self.ignore_label is not None:
@@ -76,7 +84,7 @@ class NceMetric(EvalMetric):
         self.num_inst += num/num_label
 
 
-def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, num_label, seq_len, pad_label):
+def nce_loss(data, label, label_weight, vocab_size, num_hidden, num_label, seq_len, pad_label):
     """
     data format: NT
 
@@ -90,22 +98,28 @@ def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, nu
         - num_hidden: length of hidden
         - num_label: length of label
     """
+    # [batch_size*seq_len, 1, num_hidden]
+    data = mx.sym.Reshape(data, shape=(-1, 1, num_hidden), name='pred_reshape')
+
     # [batch_size, seq_len, num_label] ->  [batch_size, seq_len, num_label, num_hidden]
-    label_embed = mx.sym.Embedding(data = label, weight=embed_weight, 
-                                   input_dim = vocab_size,
-                                   output_dim = num_hidden, name = 'label_embed')
+    labemb_wgt = mx.sym.Variable('label_embed_weight')
+    label_embed = mx.sym.Embedding(label, input_dim = vocab_size,
+                                   output_dim = num_hidden, weight=labemb_wgt, name = 'label_embed')
 
     # [batch_size*seq_len, num_label, num_hidden]
-    label_embed = mx.sym.Reshape(data=label_embed, shape=(-1, num_label, num_hidden), name='label_embed_reshape')
+    label_embed = mx.sym.Reshape(label_embed, shape=(-1, num_label, num_hidden), name='label_embed_reshape')
 
-    # [batch_size*seq_len, 1, num_hidden]
-    data = mx.sym.Reshape(data=data, shape=(-1, 1, num_hidden), name='pred_reshape')
+    # [batch_size*seq_len, num_label, 1]
+    bias = mx.sym.Embedding(label, input_dim=vocab_size, output_dim=1, name="bias_embed")
+    bias = mx.sym.Reshape(bias, shape=(-1, num_label), name='bias_embed_reshape')
 
     # [batch_size*seq_len, num_label, num_hidden]
     pred = mx.sym.broadcast_mul(data, label_embed, name='pred_labemb_broadcast_mul')
 
     # [batch_size*seq_len, num_label]
     pred = mx.sym.sum(data=pred, axis=2, name='pred_labemb_broadcast_mul_sum')
+
+    pred = pred + bias
 
     # mask out pad data
     pad_label = mx.sym.Variable('pad_label', shape=(1,), init=MyConstant([pad_label]))
@@ -114,11 +128,10 @@ def nce_loss(data, label, label_weight, embed_weight, vocab_size, num_hidden, nu
 
     pred = pred*flag 
 
-    #pred = mx.sym.SoftmaxActivation(data=pred, name='pred_softmax_act')
-
     label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label), name='labwgt_reshape')
-    return mx.sym.LogisticRegressionOutput(data=pred, label=label_weight, name='final_logistic')
-    #return mx.symbol.Custom(data=pred, label=label_weight, name='final_logistic', op_type='MyLogistic')
+    pred =  mx.sym.LogisticRegressionOutput(data=pred, label=label_weight, name='final_logistic')
+
+    return pred
 
 
 
@@ -214,7 +227,7 @@ class LMNceIter(DataIter):
     """
     def __init__(self, sentences, batch_size, freq, buckets=None, pad_label=-1,
                  data_name='data', label_name='label', dtype='float32',
-                 layout='NTC', num_label=5):
+                 layout='NTC', num_label=5, for_train=True):
         super(DataIter, self).__init__()
 
         # generate buckets automatically
@@ -287,18 +300,24 @@ class LMNceIter(DataIter):
             self.idx.extend([(i, j) for j in range(0, len(buck) - batch_size + 1, batch_size)])
         self.curr_idx = 0
 
-        self.prepare()
+        self.for_train = for_train
+        if for_train:
+            self.reset()
+        else:
+            self.cur_idx = 0
+            np.random.shuffle(self.idx)
+            self.prepare()
 
 
     def reset(self):
-        self.curr_idx = 0
-        # shuffle index
-        np.random.shuffle(self.idx)
+        if self.for_train:
+            self.curr_idx = 0
 
+            # shuffle index
+            np.random.shuffle(self.idx)
+            self.prepare()
 
     def prepare(self):
-        self.reset()
-
         # shuffle sentences in a bucket  
         for buck in self.data:
             np.random.shuffle(buck)
@@ -306,7 +325,7 @@ class LMNceIter(DataIter):
         # buffer for negtive sample
         negbuf = []
         for i,cnt in self.freq.items():
-            cnt = int(np.power(cnt, 0.75))
+            cnt = int(np.power(cnt, 0))
             negbuf.extend(np.full(cnt, i))
         np.random.shuffle(negbuf)
 
@@ -375,7 +394,6 @@ class LMNceIter(DataIter):
             i, j = self.idx[self.curr_idx]
             #i, j = self.idx[0]
             self.curr_idx += 1
-        #print('sample iter: ', i, j)
 
 	step = self.batch_size
         if self.major_axis == 1:
@@ -388,12 +406,6 @@ class LMNceIter(DataIter):
             data = self.nddata[i][j:j+step]
             label = self.ndlabel[i][j:j+step]
             label_weight = self.ndlabel_weight[i][j:j+step]
-
-        #if 1==self.curr_idx:
-        #    print('data: ', data.asnumpy())
-        #    print('label: ', label.asnumpy()) 
-        #    print('label wgt: ', label_weight.asnumpy())
-        #    print(data.shape, label.shape, label_weight.shape, self.buckets[i])
 
         return DataBatch([data], [label, label_weight], pad=0,
                          bucket_key=self.buckets[i],

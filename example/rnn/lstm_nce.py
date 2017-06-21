@@ -29,19 +29,8 @@ def train_sym_gen(args, vocab_size, pad_label):
 
         # define output embeding matrix
         labwgt = mx.sym.Variable('label_weight')
-        embedwgt = mx.sym.Variable(name='label_embed_weight', shape=(vocab_size, args.num_hidden))
-        pred = nce_loss(output, label, labwgt, embedwgt, vocab_size, args.num_hidden, args.num_label, seq_len, pad_label)
+        pred = nce_loss(output, label, labwgt, vocab_size, args.num_hidden, args.num_label, seq_len, pad_label)
 
-        # add grad for internal layer
-        #outnames = pred.list_outputs()
-        #argnames = pred.list_arguments()
-
-        #intsyms = pred.get_internals()
-        #sym_group = [pred]
-        #for item in intsyms.list_outputs():
-        #    if item not in outnames and item not in argnames:
-        #        sym_group.append(mx.symbol.BlockGrad(intsyms[item], name=item))
-        #pred = mx.symbol.Group(sym_group)
         return pred, ('data',), ('label', 'label_weight')
 
     return cell, sym_gen
@@ -76,12 +65,18 @@ def test_sym_gen(args, vocab_size):
         allLab = mx.sym.Variable('alllab', shape=(vocab_size-1,), dtype='float32')
         labs = mx.sym.Embedding(data=allLab, input_dim=vocab_size, output_dim=args.num_hidden, name='label_embed')
 
+        # [vocab_size, 1]
+        bias = mx.sym.Embedding(allLab, input_dim=vocab_size, output_dim=1, name='bias_embed')
+        bias = mx.sym.Reshape(bias, shape=(1, -1))
+
         # labs: [vocab_size, num_hidden]
         # output: [batch_size*seq_len, vocab_size, num_hidden]
         pred = mx.sym.broadcast_mul(pred, labs)
 
         # [batch_size*seq_len, vocab_size]
         pred = mx.sym.sum(data=pred, axis=2)
+        pred = mx.sym.broadcast_add(pred, bias)
+
         pred = mx.sym.sigmoid(data=pred, name='sigmoid')
 
         label = mx.sym.Variable('label')

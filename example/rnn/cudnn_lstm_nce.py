@@ -22,7 +22,7 @@ buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
 
 def train(args):
-    layout = 'TN'
+    layout = 'NT'
     train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
     assert None==vocab.get(''), "'' shouldn't appeare in sentences"
     vocab[''] = pad_label
@@ -93,7 +93,7 @@ def train(args):
         aux_params          = aux_params,
         begin_epoch         = args.load_epoch,
         num_epoch           = args.num_epochs,
-        #monitor             = mx.mon.Monitor(1, mymonitor),
+        monitor             = mx.mon.Monitor(args.disp_batches, mymonitor),
         batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches),
         epoch_end_callback  = mx.rnn.do_rnn_checkpoint(cell, args.model_prefix, 1)
                               if args.model_prefix else None)
@@ -114,8 +114,7 @@ def test(args):
     with open('freq.json', 'w') as fid:
         fid.write(json.dumps(freq))
 
-    #test_sent, _, _ = tokenize_text(args.test_data, vocab=vocab, start_label=start_label, invalid_label=inv_label)
-    data_test    = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, 
+    data_test = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, 
             buckets=buckets,
             invalid_label=inv_label, 
             label_name='label',
@@ -129,7 +128,6 @@ def test(args):
 
     sym_gen,cell = test_sym_gen (args, len(vocab)) 
 
-    # 定义一个模型，使用bucket方式进行训练
     model = mx.mod.BucketingModule(
         sym_gen             = sym_gen,
         default_bucket_key  = data_test.default_bucket_key,
