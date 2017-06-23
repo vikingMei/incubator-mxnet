@@ -10,52 +10,36 @@ import mxnet as mx
 
 from mxnet.base import MXNetError
 
-from nce import nce_loss, LMNceIter, NceMetric
-from utils import tokenize_text
-from lstm_nce import train_sym_gen, test_sym_gen
+from loader import tokenize_text, get_nce_iter, get_repeat_iter
+from lstm_nce import LMNceIter, NceMetric
+from lstm_nce_sym import train_sym_gen, test_sym_gen
 
 pad_label = 0
-inv_label = 1
+invalid_label = 1
 start_label = 2
 
 buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
 
 def train(args):
-    layout = 'NT'
-    train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
-    assert None==vocab.get(''), "'' shouldn't appeare in sentences"
-    vocab[''] = pad_label
+    if args.repeat:
+        reader = get_repeat_iter 
+    else:
+        reader = get_nce_iter
 
-    with open('vocab.json', 'w') as fid:
-        fid.write(json.dumps(vocab))
+    data_train, vocab, freq = reader(args.train_data, start_label, invalid_label, pad_label, 
+            args.batch_size, buckets, args.num_label)
 
-    with open('freq.json', 'w') as fid:
-        fid.write(json.dumps(freq))
-
-    # NOTE: in this function, will encode word that not in vocab build from train set and extend vocab, 
-    # which may be undesired
-    val_sent, _, _ = tokenize_text(args.valid_data, vocab=vocab, start_label=start_label, invalid_label=inv_label)
-
-    # layout, format of data and label. 'NT' means (batch_size, length) and 'TN' means (length, batch_size).
-    data_train  = LMNceIter(train_sent, args.batch_size, freq, 
-                            layout=layout,
-                            buckets=buckets, 
-                            pad_label=pad_label, 
-                            num_label=args.num_label)
-
-    data_val = LMNceIter(val_sent, args.batch_size, freq, 
-                            layout=layout,
-                            buckets=buckets, 
-                            pad_label=pad_label, 
-                            num_label=args.num_label)
+    data_val, _, _ = reader(args.train_data, start_label, invalid_label, pad_label, 
+            args.batch_size, buckets, args.num_label,
+            vocab, freq)
 
     if args.gpus:
         contexts = [mx.gpu(int(i)) for i in args.gpus.split(',')]
     else:
         contexts = mx.cpu(0)
 
-    cell,sym_gen = train_sym_gen(args, len(vocab), pad_label)
+    cell,sym_gen = train_sym_gen(args, len(vocab), pad_label, data_train.negdis)
     model = mx.mod.BucketingModule(
         sym_gen             = sym_gen,
         default_bucket_key  = data_train.default_bucket_key,
@@ -68,7 +52,7 @@ def train(args):
         arg_params = None
         aux_params = {}
 
-    aux_params['pad_label'] = mx.nd.array([pad_label])
+    aux_params['negdis'] = mx.nd.array(data_train.negdis)
 
     opt_params = {
       'learning_rate': args.lr,
@@ -83,8 +67,8 @@ def train(args):
 
     model.fit(
         train_data          = data_train,
-        eval_data           = data_val,
-        eval_metric         = NceMetric(pad_label),
+        eval_data           = data_train,
+        eval_metric         = NceMetric(args.num_label, data_train.negdis, pad_label),
         kvstore             = args.kv_store,
         optimizer           = args.optimizer,
         optimizer_params    = opt_params, 
@@ -107,12 +91,6 @@ def test(args):
     train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
     assert None==vocab.get(''), "'' shouldn't appeare in sentences"
     vocab[''] = pad_label
-
-    with open('vocab.json', 'w') as fid:
-        fid.write(json.dumps(vocab))
-
-    with open('freq.json', 'w') as fid:
-        fid.write(json.dumps(freq))
 
     data_test = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, 
             buckets=buckets,
@@ -195,6 +173,7 @@ if __name__ == '__main__':
     parser.add_argument('--stack-rnn', default=False, help='stack fused RNN cells to reduce communication overhead')
 
     parser.add_argument('--dropout', type=float, default='0.0', help='dropout probability (1.0 - keep probability)')
+    parser.add_argument('--repeat', action='store_true', default=False, help='using repeat data iter or not')
 
     parser.add_argument('--num-label', type=int, default=20, help='number of label for each input')
     parser.add_argument('--bind-embeding', type=bool, default=False, help='whether bind input and out embeding matrix')

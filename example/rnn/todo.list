@@ -1,6 +1,0 @@
-1. the NceMetric update is very slow while run with cpu
-    gpu is much faster
-
-2. my version of normal lstm is slower than cudnn_lstm_bucketing(3xx VS 5xx)
-
-3. FusedRNN 2~3x faster than LstmRNN

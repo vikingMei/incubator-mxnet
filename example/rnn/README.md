@@ -42,3 +42,15 @@ DataDesc.layout: NCHW
 
 1. define custom op 
     mx.symbol.Custom(data=pred, label=label_weight, name='final_logistic', op_type='MyLogistic')
+
+../../python/mxnet/operator.py:614
+
+## BUG 
+1. bucketingModule.install_monitor 
+    always install on the default bucket module, not current module
+
+1. bucketingModule 
+    rescale_grad/batch_size: batch_size always be the default bucket key
+
+## Ana
+1. 原始模型送入同一句话，准确率提高

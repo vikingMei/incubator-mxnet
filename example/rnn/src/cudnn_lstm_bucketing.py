@@ -1,6 +1,7 @@
 import numpy as np
 import mxnet as mx
 import argparse
+from repeatiter import RepeatIter
 
 parser = argparse.ArgumentParser(description="Train RNN on Penn Tree Bank",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -66,10 +67,11 @@ def get_data(layout):
     val_sent, _ = tokenize_text("./data/ptb.test.txt", vocab=vocab, start_label=start_label,
                                 invalid_label=invalid_label)
 
-    data_train  = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, buckets=buckets,
+    data_train  = RepeatIter(train_sent, args.batch_size, buckets=buckets,
                                             invalid_label=invalid_label, layout=layout, label_name="label")
-    data_val    = mx.rnn.BucketSentenceIter(val_sent, args.batch_size, buckets=buckets,
+    data_val    = RepeatIter(val_sent, args.batch_size, buckets=buckets,
                                             invalid_label=invalid_label, layout=layout, label_name="label")
+
     return data_train, data_val, vocab
 
 
@@ -128,6 +130,9 @@ def train(args):
     if args.optimizer not in ['adadelta', 'adagrad', 'adam', 'rmsprop']:
         opt_params['momentum'] = args.mom
 
+    def mymonitor(arr):
+        return arr
+
     model.fit(
         train_data          = data_train,
         eval_data           = data_val,
@@ -140,6 +145,7 @@ def train(args):
         aux_params          = aux_params,
         begin_epoch         = args.load_epoch,
         num_epoch           = args.num_epochs,
+        monitor             = mx.mon.Monitor(args.disp_batches, mymonitor),
         batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches),
         epoch_end_callback  = mx.rnn.do_rnn_checkpoint(cell, args.model_prefix, 1)
                               if args.model_prefix else None)

@@ -8,131 +8,11 @@ from __future__ import print_function
 
 import bisect
 import numpy as np
-import threading
 import multiprocessing as mp
 
 import mxnet as mx
 from mxnet import ndarray
-from mxnet.metric import EvalMetric
 from mxnet.io import DataIter, DataBatch
-
-#np.random.seed(0)
-
-@mx.init.register
-class MyConstant(mx.init.Initializer):
-    def __init__(self, value):
-        super(MyConstant, self).__init__(value=value)
-        self.value = value
-
-    def _init_weight(self, _, arr):
-        arr[:] = mx.nd.array(self.value)
-
-
-class NceMetric(EvalMetric):
-    def __init__(self, ignore_label, axis=-1):
-        super(NceMetric, self).__init__('NCE')
-        self.ignore_label = ignore_label
-        self.axis = axis
-
-    def get(self):
-        if self.num_inst == 0:
-            return (self.name, float('nan'))
-        else:
-            return (self.name, self.sum_metric / self.num_inst)
-
-
-    def update(self, labels, preds):
-        """
-        compute nce loss
-        """
-        # remove other internals output symbols
-        preds = [preds[0]]
-
-        assert len(labels) == 2*len(preds)
-
-        labvals = [labels[0]]
-        labwgts = [labels[1]]
-
-        # batch_size, seq_len, num_label
-        shape = labels[0].shape
-        num_label = shape[-1]
-
-        loss = 0.
-        num = 0
-        probs = []
-
-        for pred,labval,labwgt in zip(preds, labvals, labwgts):
-            #pred.asnumpy().tofile('./logs/%05d', self.idx)
-            labval = labval.as_in_context(pred.context)
-            labval = labval.reshape(pred.shape)
-            labwgt = labwgt.as_in_context(pred.context)
-            labwgt = labwgt.reshape(pred.shape)
-
-            # p*log(q) + (1-p)*log(1-q)
-            pred = labwgt*ndarray.log(ndarray.maximum(1e-10, pred)) + (1-labwgt)*ndarray.log(ndarray.maximum(1e-10, 1-pred))
-
-            # mask invalid label
-            if self.ignore_label is not None:
-                flag = (labval==self.ignore_label)
-                pred = pred*(1-flag)
-                num -= ndarray.sum(flag).asscalar()
-
-            num += pred.size
-            loss -= ndarray.sum(pred).asscalar()
-
-        self.sum_metric += loss
-        self.num_inst += num/num_label
-
-
-def nce_loss(data, label, label_weight, vocab_size, num_hidden, num_label, seq_len, pad_label):
-    """
-    data format: NT
-
-    PARAMETERS:
-        - data: input data, lstm layer output, size [batch_size, seq_len, num_hidden]
-        - label: input label, size: [seq_len, num_label, batch_size], the first one is true label
-        - label_weight: weight of each label, [seq_len, num_label, batch],
-          first is 1.0, others are 0.0
-        - embed_weight: embeding matrix for label embeding 
-        - vocab_size: the size of vocab
-        - num_hidden: length of hidden
-        - num_label: length of label
-    """
-    # [batch_size*seq_len, 1, num_hidden]
-    data = mx.sym.Reshape(data, shape=(-1, 1, num_hidden), name='pred_reshape')
-
-    # [batch_size, seq_len, num_label] ->  [batch_size, seq_len, num_label, num_hidden]
-    labemb_wgt = mx.sym.Variable('label_embed_weight')
-    label_embed = mx.sym.Embedding(label, input_dim = vocab_size,
-                                   output_dim = num_hidden, weight=labemb_wgt, name = 'label_embed')
-
-    # [batch_size*seq_len, num_label, num_hidden]
-    label_embed = mx.sym.Reshape(label_embed, shape=(-1, num_label, num_hidden), name='label_embed_reshape')
-
-    # [batch_size*seq_len, num_label, 1]
-    bias = mx.sym.Embedding(label, input_dim=vocab_size, output_dim=1, name="bias_embed")
-    bias = mx.sym.Reshape(bias, shape=(-1, num_label), name='bias_embed_reshape')
-
-    # [batch_size*seq_len, num_label, num_hidden]
-    pred = mx.sym.broadcast_mul(data, label_embed, name='pred_labemb_broadcast_mul')
-
-    # [batch_size*seq_len, num_label]
-    pred = mx.sym.sum(data=pred, axis=2, name='pred_labemb_broadcast_mul_sum')
-
-    pred = pred + bias
-
-    # mask out pad data
-    pad_label = mx.sym.Variable('pad_label', shape=(1,), init=MyConstant([pad_label]))
-    label = mx.sym.Reshape(data=label, shape=(-1,num_label), name='label_reshape')
-    flag = mx.sym.broadcast_not_equal(lhs=label, rhs=pad_label, name='mask_gen')
-
-    pred = pred*flag 
-
-    label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label), name='labwgt_reshape')
-    pred =  mx.sym.LogisticRegressionOutput(data=pred, label=label_weight, name='final_logistic')
-
-    return pred
-
 
 
 class dataPrepareProcess(mp.Process):
@@ -158,7 +38,7 @@ class dataPrepareProcess(mp.Process):
             sentcnt += 1
             shape = (len(sent), self.num_label)
 
-            labwgt = np.zeros(shape)
+            labwgt = np.full(shape, 1)
             labwgt[:, 0] = 1
 
             label = np.full(shape, self.pad_label)
@@ -167,7 +47,7 @@ class dataPrepareProcess(mp.Process):
             for i,wrd in enumerate(sent):
                 truelabel = label[i][0]
                 if truelabel==self.pad_label:
-                    labwgt[i:,] = 0.5
+                    labwgt[i:,] = 0
                     break
 
                 # unique negative sample
@@ -177,7 +57,7 @@ class dataPrepareProcess(mp.Process):
                     cnt += 1
                     val = np.random.randint(neglen)
                     val = self.negbuf[val]
-                    if val!=wrd:
+                    if int(val)!=int(wrd):
                         valset[val] = 1
                 valset.pop(truelabel)
                 label[i, 1:] = valset.keys()
@@ -227,7 +107,7 @@ class LMNceIter(DataIter):
     """
     def __init__(self, sentences, batch_size, freq, buckets=None, pad_label=-1,
                  data_name='data', label_name='label', dtype='float32',
-                 layout='NTC', num_label=5, for_train=True):
+                 layout='NTC', num_label=5, for_train=True, rand=True):
         super(DataIter, self).__init__()
 
         # generate buckets automatically
@@ -256,6 +136,10 @@ class LMNceIter(DataIter):
         self.data = [np.asarray(i, dtype=dtype) for i in self.data]
 
         self.freq = freq
+        self.negdis = np.zeros(len(freq))
+        for i, cnt in freq.items():
+            self.negdis[int(i)] = np.power(cnt, 0.75)
+        self.negdis /= np.sum(self.negdis)
 
         self.dtype = dtype
 
@@ -290,6 +174,12 @@ class LMNceIter(DataIter):
         else:
             raise ValueError("Invalid layout %s: Must by NT (batch major) or TN (time major)")
 
+        # buffer for negtive sample
+        self.negbuf = []
+        for i,cnt in self.freq.items():
+            cnt = int(np.power(cnt, 0.75))
+            self.negbuf.extend(np.full(cnt, i))
+
         # self.idx[0] = (i,j)
         #   i: the i'th bucket, whose length is self.buckets[i]
         #   j: the start index of batch in self.data[i] 
@@ -300,40 +190,38 @@ class LMNceIter(DataIter):
             self.idx.extend([(i, j) for j in range(0, len(buck) - batch_size + 1, batch_size)])
         self.curr_idx = 0
 
-        self.for_train = for_train
-        if for_train:
-            self.reset()
-        else:
-            self.cur_idx = 0
-            np.random.shuffle(self.idx)
-            self.prepare()
+        self.rand = rand
 
+        self.for_train = for_train
+        self.cur_idx = 0
+        self.prepare()
 
     def reset(self):
         if self.for_train:
             self.curr_idx = 0
 
             # shuffle index
-            np.random.shuffle(self.idx)
-            self.prepare()
+            if self.rand:
+                np.random.shuffle(self.idx)
+                np.random.shuffle(self.negbuf)
+
 
     def prepare(self):
         # shuffle sentences in a bucket  
-        for buck in self.data:
-            np.random.shuffle(buck)
-
-        # buffer for negtive sample
-        negbuf = []
-        for i,cnt in self.freq.items():
-            cnt = int(np.power(cnt, 0))
-            negbuf.extend(np.full(cnt, i))
-        np.random.shuffle(negbuf)
+        if self.rand:
+            for buck in self.data:
+                np.random.shuffle(buck)
 
         self.nddata = []
         self.ndlabel = []
         self.ndlabel_weight = []
 
-        negLen = len(negbuf) 
+        negLen = len(self.negbuf) 
+
+        if self.rand:
+            numProc = min(mp.cpu_count(), len(buck))
+        else:
+            numProc = 1
 
         for buck in self.data:
             # buck is a list of list(sentences), each row stand for a sentences
@@ -348,8 +236,6 @@ class LMNceIter(DataIter):
             buckData = []
             buckLabWgt = []
 
-            numProc = min(mp.cpu_count(), len(buck))
-
             if numProc>0:
                 procPoll = []
                 procStep = int(len(buck)/numProc)
@@ -357,12 +243,12 @@ class LMNceIter(DataIter):
                 posData = 0
                 outq = mp.Queue(maxsize=numProc)
                 for i in range(0, numProc-1):
-                    ins = dataPrepareProcess('%03d' %i, buck[posData:posData+procStep], negbuf, self.num_label, self.pad_label, outq)
+                    ins = dataPrepareProcess('%03d' %i, buck[posData:posData+procStep], self.negbuf, self.num_label, self.pad_label, outq)
                     ins.start()
                     procPoll.append(ins)
                     posData += procStep
 
-                ins = dataPrepareProcess('%03d' % numProc, buck[posData:], negbuf, self.num_label, self.pad_label, outq)
+                ins = dataPrepareProcess('%03d'%numProc, buck[posData:], self.negbuf, self.num_label, self.pad_label, outq)
                 ins.start()
                 procPoll.append(ins)
 
@@ -392,7 +278,6 @@ class LMNceIter(DataIter):
 
         if i is None or j is None:
             i, j = self.idx[self.curr_idx]
-            #i, j = self.idx[0]
             self.curr_idx += 1
 
 	step = self.batch_size
