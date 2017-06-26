@@ -3,8 +3,10 @@
 # Usage: 
 # Author: Summer Qing(qingyun.wu@aispeech.com)
 
-source ./.bashrc
+# set mxnet to current version instead of system install version 
+#source ./.bashrc
 
+mkdir -p ./output/{gradient,logs,model}
 rm -rf ./output/*/* 
 
 python ./src/cudnn_lstm_nce.py --model-prefix ./output/model/lstm \
