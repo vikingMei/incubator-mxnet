@@ -21,6 +21,10 @@ start_label = 2
 buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
 
+def mymonitor(arr):
+    return arr
+
+
 def train(args):
     if args.repeat:
         reader = get_repeat_iter 
@@ -62,13 +66,11 @@ def train(args):
     if args.optimizer not in ['adadelta', 'adagrad', 'adam', 'rmsprop']:
         opt_params['momentum'] = args.mom
 
-    def mymonitor(arr):
-        return arr
 
     model.fit(
         train_data          = data_train,
         eval_data           = data_train,
-        eval_metric         = NceMetric(args.num_label, data_train.negdis, pad_label),
+        eval_metric         = NceMetric(args.num_label, data_train.negdis, pad_label, step=args.disp_batches),
         kvstore             = args.kv_store,
         optimizer           = args.optimizer,
         optimizer_params    = opt_params, 
@@ -77,7 +79,7 @@ def train(args):
         aux_params          = aux_params,
         begin_epoch         = args.load_epoch,
         num_epoch           = args.num_epochs,
-        monitor             = mx.mon.Monitor(args.disp_batches, mymonitor),
+        #monitor             = mx.mon.Monitor(args.disp_batches, mymonitor),
         batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches),
         epoch_end_callback  = mx.rnn.do_rnn_checkpoint(cell, args.model_prefix, 1)
                               if args.model_prefix else None)
@@ -88,13 +90,13 @@ def test(args):
 
     # generate data iterator
     layout = 'NT'
-    train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=inv_label)
+    train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=invalid_label)
     assert None==vocab.get(''), "'' shouldn't appeare in sentences"
     vocab[''] = pad_label
 
     data_test = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, 
             buckets=buckets,
-            invalid_label=inv_label, 
+            invalid_label=invalid_label, 
             label_name='label',
             data_name='data',
             layout=layout)

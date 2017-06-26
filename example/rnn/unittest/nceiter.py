@@ -2,7 +2,7 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
+# Author: Summer Qing <qingyun.wu@aispeech.com>
 
 import os
 import sys

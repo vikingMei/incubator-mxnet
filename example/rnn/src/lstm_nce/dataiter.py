@@ -2,7 +2,7 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: weixing.mei(auimoviki@gmail.com)
+# Author: Summer Qing <qingyun.wu@aispeech.com>
 
 from __future__ import print_function
 
@@ -57,7 +57,7 @@ class dataPrepareProcess(mp.Process):
                     cnt += 1
                     val = np.random.randint(neglen)
                     val = self.negbuf[val]
-                    if int(val)!=int(wrd):
+                    if val!=wrd:
                         valset[val] = 1
                 valset.pop(truelabel)
                 label[i, 1:] = valset.keys()
@@ -136,9 +136,17 @@ class LMNceIter(DataIter):
         self.data = [np.asarray(i, dtype=dtype) for i in self.data]
 
         self.freq = freq
+
+        # negative distribution 
         self.negdis = np.zeros(len(freq))
+
+        # buffer for negtive sample
+        self.negbuf = []
+        vocabSz = len(freq) 
         for i, cnt in freq.items():
-            self.negdis[int(i)] = np.power(cnt, 0.75)
+            cnt = np.power(cnt, 0.75)
+            self.negdis[int(i)] = cnt
+            self.negbuf.extend(np.full(int(cnt), i))
         self.negdis /= np.sum(self.negdis)
 
         self.dtype = dtype
@@ -173,12 +181,6 @@ class LMNceIter(DataIter):
                     ]
         else:
             raise ValueError("Invalid layout %s: Must by NT (batch major) or TN (time major)")
-
-        # buffer for negtive sample
-        self.negbuf = []
-        for i,cnt in self.freq.items():
-            cnt = int(np.power(cnt, 0.75))
-            self.negbuf.extend(np.full(cnt, i))
 
         # self.idx[0] = (i,j)
         #   i: the i'th bucket, whose length is self.buckets[i]
@@ -218,11 +220,6 @@ class LMNceIter(DataIter):
 
         negLen = len(self.negbuf) 
 
-        if self.rand:
-            numProc = min(mp.cpu_count(), len(buck))
-        else:
-            numProc = 1
-
         for buck in self.data:
             # buck is a list of list(sentences), each row stand for a sentences
             #
@@ -235,7 +232,8 @@ class LMNceIter(DataIter):
             buckLab = []
             buckData = []
             buckLabWgt = []
-
+            
+            numProc = min(mp.cpu_count(), len(buck))
             if numProc>0:
                 procPoll = []
                 procStep = int(len(buck)/numProc)

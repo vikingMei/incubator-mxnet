@@ -2,7 +2,7 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
+# Author: Summer Qing <qingyun.wu@aispeech.com>
 
 import sys
 
@@ -10,56 +10,6 @@ import numpy as np
 import mxnet as mx
 
 from lstm_nce import NceOutput
-
-
-def nce_loss(data, label, label_weight, vocab_size, num_hidden, num_label, seq_len, pad_label):
-    """
-    data format: NT
-
-    PARAMETERS:
-        - data: input data, lstm layer output, size [batch_size, seq_len, num_hidden]
-        - label: input label, size: [seq_len, num_label, batch_size], the first one is true label
-        - label_weight: weight of each label, [seq_len, num_label, batch],
-          first is 1.0, others are 0.0
-        - embed_weight: embeding matrix for label embeding 
-        - vocab_size: the size of vocab
-        - num_hidden: length of hidden
-        - num_label: length of label
-    """
-    # [batch_size*seq_len, 1, num_hidden]
-    data = mx.sym.Reshape(data, shape=(-1, 1, num_hidden), name='pred_reshape')
-
-    # [batch_size, seq_len, num_label] ->  [batch_size, seq_len, num_label, num_hidden]
-    labemb_wgt = mx.sym.Variable('label_embed_weight')
-    label_embed = mx.sym.Embedding(label, input_dim = vocab_size,
-                                   output_dim = num_hidden, weight=labemb_wgt, name = 'label_embed')
-
-    # [batch_size*seq_len, num_label, num_hidden]
-    label_embed = mx.sym.Reshape(label_embed, shape=(-1, num_label, num_hidden), name='label_embed_reshape')
-
-    # [batch_size*seq_len, num_label, 1]
-    bias = mx.sym.Embedding(label, input_dim=vocab_size, output_dim=1, name="bias_embed")
-    bias = mx.sym.Reshape(bias, shape=(-1, num_label), name='bias_embed_reshape')
-
-    # [batch_size*seq_len, num_label, num_hidden]
-    pred = mx.sym.broadcast_mul(data, label_embed, name='pred_labemb_broadcast_mul')
-
-    # [batch_size*seq_len, num_label]
-    pred = mx.sym.sum(data=pred, axis=2, name='pred_labemb_broadcast_mul_sum')
-
-    pred = pred + bias
-
-    # mask out pad data
-    pad_label = mx.sym.Variable('pad_label', shape=(1,), init=MyConstant([pad_label]))
-    label = mx.sym.Reshape(data=label, shape=(-1,num_label), name='label_reshape')
-    flag = mx.sym.broadcast_not_equal(lhs=label, rhs=pad_label, name='mask_gen')
-
-    pred = pred*flag 
-
-    label_weight = mx.sym.Reshape(data=label_weight, shape=(-1, num_label), name='labwgt_reshape')
-    pred =  mx.sym.LogisticRegressionOutput(data=pred, label=label_weight, name='final_logistic')
-
-    return pred
 
 
 
@@ -170,8 +120,6 @@ def test_sym_gen(args, vocab_size):
         # [batch_size*seq_len, vocab_size]
         pred = mx.sym.sum(data=pred, axis=2)
         pred = mx.sym.broadcast_add(pred, bias)
-
-        pred = mx.sym.sigmoid(data=pred, name='sigmoid')
 
         label = mx.sym.Variable('label')
         label = mx.sym.Reshape(label, shape=(-1,))

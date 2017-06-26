@@ -5,6 +5,8 @@
 
 source ./.bashrc
 
-rm ./output/*/* -rf
+rm -rf ./output/*/* 
 
-python ./src/cudnn_lstm_nce.py --gpus 1 --num-label 5 --lr 0.001 --batch-size 1 "$@"
+python ./src/cudnn_lstm_nce.py --model-prefix ./output/model/lstm \
+    --disp-batches 40 \
+    --gpus 1 --num-label 50 --lr 0.01 --batch-size 40 "$@"

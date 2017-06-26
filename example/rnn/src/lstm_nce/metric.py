@@ -9,9 +9,11 @@ from mxnet import ndarray
 from mxnet.metric import EvalMetric
 
 class NceMetric(EvalMetric):
-    def __init__(self, num_lab, negdis, ignore_label=0, axis=-1):
+    def __init__(self, num_lab, negdis, ignore_label=0, axis=-1, step=1):
         super(NceMetric, self).__init__('NCE')
         self.axis = axis
+        self.idx = 0
+        self.step = step
 
         self.negdis = negdis
         if type(negdis)!=ndarray.NDArray:
@@ -78,7 +80,7 @@ class NceMetric(EvalMetric):
             acc -= ndarray.log(pred)*mask
 
             #acc[:, :, 1:] -= ndarray.log(pn[:, :, 1:]) 
-            #acc -= ndarray.log(pn)*(1-mask)
+            acc -= ndarray.log(pn)*(1-mask)
 
             # mask invalid label
             if self.ignore_label is not None:
@@ -87,7 +89,14 @@ class NceMetric(EvalMetric):
                 num -= ndarray.sum(flag).asscalar()
 
             num += pred.size
+            #self.idx += 1
+            #if 1==self.idx%self.step:
+            #    fname = 'output/logs/%03d-acc' % (self.idx)
+            #    print(fname)
+            #    acc.asnumpy().tofile(fname, sep='\n')
+
             loss += ndarray.sum(acc).asscalar() 
+            loss += self.klogk
 
         self.sum_metric += loss
         self.num_inst += num/self.num_label

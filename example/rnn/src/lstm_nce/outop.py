@@ -28,8 +28,7 @@ class NceOutput(mx.operator.CustomOp):
         data = in_data[0]
         label = in_data[1]
 
-        y = 1+mx.nd.exp(-data) 
-        y = 1/y
+        y = mx.nd.exp(data)
 
         self.assign(out_data[0], req[0], y)
 
@@ -53,22 +52,23 @@ class NceOutput(mx.operator.CustomOp):
         # [batch_size, seq_len, num_lab]
         label = label.reshape((-1,))
 
-        grad = (1-y)/(y+k*pn)
+        grad = -y/(y+k*pn)
 
         # mask 
-        pn_bk = pn.asnumpy() 
-        mask = -y.asnumpy()
-        mask[:, :, 0] = pn_bk[:, :, 0]*k
+        mask = np.zeros(grad.shape)
+        mask[:, :, 0] = 1
         mask = mx.nd.array(mask).as_in_context(grad.context)
 
         #*labwgt
-        grad = -grad*mask*labwgt
+        grad = grad+mask
+        grad = -grad*labwgt
 
-        #fname = './output/gradient/%03d' % self.idx
         #self.idx += 1
-        #grad.asnumpy().tofile(fname, sep="\n")
+        #if 1==self.idx%40:
+        #    fname = './output/gradient/%03d' % self.idx
+        #    grad.asnumpy().tofile(fname, sep='\n')
 
-        self.assign(in_grad[0], req[0],grad)
+        self.assign(in_grad[0], req[0], grad)
 
 
 @mx.operator.register("NceOutput")

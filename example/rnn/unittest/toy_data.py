@@ -2,7 +2,7 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
+# Author: Summer Qing <qingyun.wu@aispeech.com>
 
 import os
 from utils import tokenize_text
@@ -18,6 +18,9 @@ def gen_toy_data(batch_size=1, pad_label=0, invalid_lab=1, start_label=2, num_la
         fid.write('\n')
 
     sent, vocab, freq = tokenize_text(fname, vocab=None, invalid_label=1, start_label=2) 
+    assert None==vocab.get(''), "'' shouldn't appeare in sentences"
+    vocab[''] = pad_label
+    freq[pad_label] = 0
 
     dataIter  = LMNceIter(sent, batch_size, freq, layout='NT', buckets=buckets, pad_label=pad_label, num_label=num_label)
 
@@ -38,6 +41,7 @@ def gen_train_data(batch_size, num_label):
     sent, vocab, freq = tokenize_text("./data/train.txt", start_label=2, invalid_label=1)
     assert None==vocab.get(''), "'' shouldn't appeare in sentences"
     vocab[''] = 0
+    freq[0] = 0
 
     # layout, format of data and label. 'NT' means (batch_size, length) and 'TN' means (length, batch_size).
     dataIter  = LMNceIter(sent, batch_size, freq, layout='NT', buckets=buckets, pad_label=0, num_label=5)
