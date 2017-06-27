@@ -71,10 +71,10 @@ class NceMetric(EvalMetric):
             pospn = pn[:, :, 0]
             negpn = pn[:, :, 1:]
 
-            posloss = np.log(pospred) - np.log(pospred+ k*pospn)
+            posloss = np.log(pospred/(pospred+k*pospn))
 
             knegpn = k*negpn
-            negloss = np.log(np.maximum(1e-10, knegpn)) - np.log(negpred+knegpn)
+            negloss = np.log(np.maximum(1e-10, knegpn)/(negpred+knegpn))
 
             # mask invalid label
             if self.ignore_label is not None:

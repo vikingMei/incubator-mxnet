@@ -21,11 +21,6 @@ start_label = 2
 
 buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
-
-def mymonitor(arr):
-    return arr
-
-
 def train(args):
     if args.repeat:
         reader = get_repeat_iter 
@@ -38,6 +33,7 @@ def train(args):
     data_val, _, _ = reader(args.train_data, start_label, invalid_label, pad_label, 
             args.batch_size, buckets, args.num_label,
             vocab, freq)
+    data_val.for_train = False
 
     # save vocab
     if args.model_prefix:
@@ -87,7 +83,7 @@ def train(args):
         aux_params          = aux_params,
         begin_epoch         = args.load_epoch,
         num_epoch           = args.num_epochs,
-        #monitor             = mx.mon.Monitor(args.disp_batches, mymonitor),
+        #monitor             = mx.mon.Monitor(args.disp_batches, lambda x: x),
         batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches, auto_reset=False),
         epoch_end_callback  = mx.rnn.do_rnn_checkpoint(cell, args.model_prefix, 1)
                               if args.model_prefix else None)
@@ -100,15 +96,10 @@ def test(args):
     with open(pname, 'r') as fid:
         vocab = json.load(fid)
 
-    # generate data iterator
-    layout = 'NT'
-    #train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=invalid_label)
-    #assert None==vocab.get(''), "'' shouldn't appeare in sentences"
-    #vocab[''] = pad_label
-
     test_sent, _, _ = tokenize_text(args.test_data, vocab, start_label=start_label, invalid_label=invalid_label)
 
     # invlid_label below are used for padding, different from previous(which is <eos>)
+    layout = 'NT'
     data_test = mx.rnn.BucketSentenceIter(test_sent, args.batch_size, 
             buckets=buckets,
             invalid_label=pad_label, 
@@ -128,11 +119,8 @@ def test(args):
         default_bucket_key  = data_test.default_bucket_key,
         context             = contexts)
 
-    datashape = data_test.provide_data
-    labelshape = data_test.provide_label
-    model.bind(datashape, labelshape, for_training=False)
+    model.bind(data_test.provide_data, data_test.provide_label, for_training=False)
 
-    # note here we load using SequentialRNNCell instead of FusedRNNCell.
     _, arg_params, aux_params = mx.rnn.load_rnn_checkpoint(cell, args.model_prefix, args.load_epoch)
     if args.gpus:
         arg_params['alllab'] =  mx.ndarray.arange(0, len(vocab), dtype='float32').as_in_context(contexts[0])
@@ -192,6 +180,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--dropout', type=float, default='0.0', help='dropout probability (1.0 - keep probability)')
     parser.add_argument('--repeat', action='store_true', default=False, help='using repeat data iter or not')
+    parser.add_argument('--lnz', type=float, default=9.0, help='normalization constant')
 
     parser.add_argument('--num-label', type=int, default=20, help='number of label for each input')
     parser.add_argument('--bind-embeding', type=bool, default=False, help='whether bind input and out embeding matrix')

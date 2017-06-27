@@ -13,7 +13,6 @@ import logging
 class NceOutput(mx.operator.CustomOp):
     def __init__(self):
         super(NceOutput, self).__init__()
-        self.numlab = 4
         self.idx = 0
         
     def forward(self, is_train, req, in_data, out_data, aux):
@@ -27,10 +26,12 @@ class NceOutput(mx.operator.CustomOp):
         """
         data = in_data[0]
         label = in_data[1]
+        lnz = in_data[4]
 
-        y = mx.nd.exp(data-9.0)
+        y = mx.nd.exp(data-lnz)
 
         self.assign(out_data[0], req[0], y)
+
 
     def backward(self, req, out_grad, in_data, out_data, in_grad, aux):
         # [batch_size, seq_len]
@@ -59,7 +60,6 @@ class NceOutput(mx.operator.CustomOp):
         mask[:, :, 0] = 1
         mask = mx.nd.array(mask).as_in_context(grad.context)
 
-        #*labwgt
         grad = grad+mask
         grad = -grad*labwgt
 
@@ -77,18 +77,14 @@ class NceOutputProp(mx.operator.CustomOpProp):
         super(NceOutputProp, self).__init__(need_top_grad=False)
     
     def list_arguments(self):
-        return ['data', 'label', 'label_weight', 'negprob']
+        return ['data', 'label', 'label_weight', 'negprob', 'lnz']
 
     def list_outputs(self):
         return ['output']
 
     def infer_shape(self, in_shape):
-        data_shape = in_shape[0]
-        label_shape = in_shape[1]
-        label_weight_shape = in_shape[2]
-        negprob_shape = in_shape[3]
         output_shape = in_shape[0]
-        return [data_shape, label_shape, label_weight_shape, negprob_shape], [output_shape], []
+        return in_shape, [output_shape], []
 
     def infer_type(self, in_type):
         return in_type, [in_type[0]], []

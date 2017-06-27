@@ -44,8 +44,12 @@ def train_sym_gen(args, vocab_size, pad_label, negdisval=None):
         data = mx.sym.Variable('data')
         label = mx.sym.Variable('label')
         labwgt = mx.sym.Variable('label_weight')
+
         negdis = mx.sym.Variable('negdis', shape=(vocab_size,1), dtype='float32', init=MyConstant(negdisval.reshape(-1,1)) )
         negdis = mx.sym.BlockGrad(negdis)
+
+        lnz = mx.sym.Variable('lnz', shape=(1), dtype='float32', init=mx.init.Constant(args.lnz))
+        lnz = mx.sym.BlockGrad(lnz)
 
         # map input to a embeding vector
         embedIn = mx.sym.Embedding(data, input_dim=vocab_size, output_dim=args.num_embed,name='input_embed')
@@ -63,7 +67,6 @@ def train_sym_gen(args, vocab_size, pad_label, negdisval=None):
         biasemb = mx.sym.Reshape(biasemb, shape=(-1, 0, 0))
 
         # [batch_size, seq_len, 1, num_hidden]
-        #pred = mx.sym.Reshape(pred, shape=(-1, seq_len, 1, args.num_hidden), name="pred_reshape")
         pred = mx.sym.expand_dims(pred, axis=2, name='pred_expand_dim')
 
         # [batch_size, seq_len, num_lab]
@@ -74,10 +77,12 @@ def train_sym_gen(args, vocab_size, pad_label, negdisval=None):
 
         # find Pn[lab] using embeding
         negprob = mx.sym.Embedding(label,input_dim=vocab_size, output_dim=1, weight=negdis, name="negprob_embeding")
-        negprob = mx.sym.Reshape(negprob, shape=(-1,seq_len, args.num_label))
+        negprob = mx.sym.Reshape(negprob, shape=(-1, 0, args.num_label))
         negprob = mx.sym.BlockGrad(negprob, name='negprob_stop_gradient')
 
-        pred = mx.symbol.Custom(data=pred, label=label, label_weight=labwgt, negprob=negprob, name='nce_output', op_type='NceOutput')
+        pred = mx.symbol.Custom(data=pred, label=label, label_weight=labwgt,
+                    negprob=negprob, lnz=lnz, 
+                    name='nce_output', op_type='NceOutput')
 
         return pred, ('data',), ('label', 'label_weight')
 
@@ -86,14 +91,6 @@ def train_sym_gen(args, vocab_size, pad_label, negdisval=None):
 
 def test_sym_gen(args, vocab_size): 
     stack = mx.rnn.FusedRNNCell(args.num_hidden, num_layers=args.num_layers, mode='lstm')
-    #if not args.stack_rnn:
-    #    stack = mx.rnn.FusedRNNCell(args.num_hidden, num_layers=args.num_layers,
-    #            mode='lstm', bidirectional=args.bidirectional).unfuse()
-    #else:
-    #    stack = mx.rnn.SequentialRNNCell()
-    #    for i in range(args.num_layers):
-    #        cell = mx.rnn.LSTMCell(num_hidden=args.num_hidden, prefix='lstm_l%d_'%i)
-    #        stack.add(cell)
 
     def sym_gen(seq_len):
         data = mx.sym.Variable('data')
