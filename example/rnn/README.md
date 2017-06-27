@@ -52,5 +52,18 @@ DataDesc.layout: NCHW
 1. bucketingModule 
     rescale_grad/batch_size: batch_size always be the default bucket key
 
-## Ana
-1. 原始模型送入同一句话，准确率提高
+## TODO 
+### 验证
+1. test验证
+1. negative sample 是否重复的影响
+1. bucketing 中batch_size的影响
+
+### 代码调整
+1. lnz的影响, 作为参数
+1. bucketing 自动生成
+1. learing rate 可调(查阅文档)
+1. nan
+
+### 加速优化
+1. NTC调整为TNC     
+1. 使用C++实现NceOutput 

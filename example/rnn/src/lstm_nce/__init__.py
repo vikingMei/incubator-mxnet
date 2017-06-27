@@ -4,6 +4,6 @@
 # Usage: 
 # Author: Summer Qing(qingyun.wu@aispeech.com)
 
-from .dataiter import LMNceIter
+from .dataiter2 import LMNceIter
 from .metric import NceMetric
 from .outop import NceOutput

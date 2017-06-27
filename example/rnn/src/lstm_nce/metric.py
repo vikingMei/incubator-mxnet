@@ -56,47 +56,37 @@ class NceMetric(EvalMetric):
         # loss = -ml(theta, w) = sum(log(y+k*pn) - log(y_0) - sum_neg(log(pn)) - k*log(k)
         for pred,label,labwgt in zip(preds, labvals, labwgts):
             #[batch_size, seq_len, num_label]
-            label = label.as_in_context(pred.context)
             label = label.reshape(pred.shape)
 
-            negdis = self.negdis.as_in_context(pred.context)
-
             # [batch_size, seq_len, num_label]
-            pn = ndarray.Embedding(label, weight=negdis, input_dim=self.vocab_size, output_dim=1) 
-            pn = pn.reshape(label.shape).as_in_context(pred.context)
+            pn = ndarray.Embedding(label, weight=self.negdis, input_dim=self.vocab_size, output_dim=1) 
+            pn = pn.reshape(label.shape)
 
-            pred = ndarray.maximum(1e-10, pred)
-            pn = ndarray.maximum(1e-10, pn)
+            pred = pred.asnumpy()
+            pn  = pn.asnumpy()
 
-            acc = ndarray.log(pred+k*pn) 
+            pospred = pred[:, :, 0]
+            negpred = pred[:, :, 1:]
 
-            # ndarray not support multiple dimension slice, so using mask for help
-            mask = np.zeros(acc.shape) 
-            mask[:, :, 0] = 1.0
-            mask = ndarray.array(mask, ctx=pred.context)
+            pospn = pn[:, :, 0]
+            negpn = pn[:, :, 1:]
 
-            # -log(y_0) 
-            # acc[:, :, 0] -= ndarray.log(pred[:, :, 0]) 
-            acc -= ndarray.log(pred)*mask
+            posloss = np.log(pospred) - np.log(pospred+ k*pospn)
 
-            #acc[:, :, 1:] -= ndarray.log(pn[:, :, 1:]) 
-            acc -= ndarray.log(pn)*(1-mask)
+            knegpn = k*negpn
+            negloss = np.log(np.maximum(1e-10, knegpn)) - np.log(negpred+knegpn)
 
             # mask invalid label
             if self.ignore_label is not None:
-                flag = (label==self.ignore_label)
-                acc = acc*(1-flag)
-                num -= ndarray.sum(flag).asscalar()
+                flag = (label==self.ignore_label).asnumpy()
+                num -= np.sum(flag)
+
+                flag = 1-flag
+                posloss = posloss*flag[:, :, 0] 
+                negloss = negloss*flag[:, :, 1:] 
 
             num += pred.size
-            #self.idx += 1
-            #if 1==self.idx%self.step:
-            #    fname = 'output/logs/%03d-acc' % (self.idx)
-            #    print(fname)
-            #    acc.asnumpy().tofile(fname, sep='\n')
-
-            loss += ndarray.sum(acc).asscalar() 
-            loss += self.klogk
+            loss -= (negloss.sum()+posloss.sum())
 
         self.sum_metric += loss
         self.num_inst += num/self.num_label

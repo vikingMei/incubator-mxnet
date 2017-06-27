@@ -51,16 +51,17 @@ class dataPrepareProcess(mp.Process):
                     break
 
                 # unique negative sample
-                valset = {truelabel: 1}
-                cnt = 0
-                while len(valset)<self.num_label:
-                    cnt += 1
-                    val = np.random.randint(neglen)
-                    val = self.negbuf[val]
-                    if val!=wrd:
-                        valset[val] = 1
-                valset.pop(truelabel)
-                label[i, 1:] = valset.keys()
+                #valset = {truelabel: 1}
+                #cnt = 0
+                #while len(valset)<self.num_label:
+                #    cnt += 1
+                #    val = np.random.randint(neglen)
+                #    val = self.negbuf[val]
+                #    if val!=wrd:
+                #        valset[val] = 1
+                #valset.pop(truelabel)
+                #label[i, 1:] = valset.keys()
+                label[i, 1:] = [self.negbuf[x] for x in np.random.randint(neglen-1, size=self.num_label-1)]
 
             output['label'].append(label)
             output['weight'].append(labwgt)

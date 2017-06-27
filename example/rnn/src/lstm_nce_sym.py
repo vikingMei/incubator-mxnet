@@ -52,7 +52,7 @@ def train_sym_gen(args, vocab_size, pad_label, negdisval=None):
 
         # pass embedding vector to lstm
         # [batch_size, seq_len, num_hidden]
-        pred, _ = cell.unroll(seq_len, inputs=embedIn, layout='TNC', merge_outputs=True)
+        pred, _ = cell.unroll(seq_len, inputs=embedIn, layout='NTC', merge_outputs=True)
 
         #[batch_size, seq_len, num_lab, num_hidden]
         labemb = mx.sym.Embedding(label, input_dim=vocab_size, output_dim=args.num_embed, name="output_embed")
@@ -60,10 +60,11 @@ def train_sym_gen(args, vocab_size, pad_label, negdisval=None):
         # [batch_size, seq_len, num_lab, 1]
         biaswgt = mx.sym.Variable('bias_embed_weight',init=mx.init.Zero())
         biasemb = mx.sym.Embedding(label, input_dim=vocab_size, output_dim=1, weight=biaswgt, name="bias_embed")
-        biasemb = mx.sym.Reshape(biasemb, shape=(-1, seq_len, args.num_label))
+        biasemb = mx.sym.Reshape(biasemb, shape=(-1, 0, 0))
 
         # [batch_size, seq_len, 1, num_hidden]
-        pred = mx.sym.Reshape(pred, shape=(-1, seq_len, 1, args.num_hidden), name="pred_reshape")
+        #pred = mx.sym.Reshape(pred, shape=(-1, seq_len, 1, args.num_hidden), name="pred_reshape")
+        pred = mx.sym.expand_dims(pred, axis=2, name='pred_expand_dim')
 
         # [batch_size, seq_len, num_lab]
         pred = mx.sym.broadcast_mul(pred, labemb, name="broadcast_mul")
@@ -84,20 +85,19 @@ def train_sym_gen(args, vocab_size, pad_label, negdisval=None):
 
 
 def test_sym_gen(args, vocab_size): 
-    if not args.stack_rnn:
-        stack = mx.rnn.FusedRNNCell(args.num_hidden, num_layers=args.num_layers,
-                mode='lstm', bidirectional=args.bidirectional).unfuse()
-    else:
-        stack = mx.rnn.SequentialRNNCell()
-        for i in range(args.num_layers):
-            cell = mx.rnn.LSTMCell(num_hidden=args.num_hidden, prefix='lstm_l%d_'%i)
-            stack.add(cell)
+    stack = mx.rnn.FusedRNNCell(args.num_hidden, num_layers=args.num_layers, mode='lstm')
+    #if not args.stack_rnn:
+    #    stack = mx.rnn.FusedRNNCell(args.num_hidden, num_layers=args.num_layers,
+    #            mode='lstm', bidirectional=args.bidirectional).unfuse()
+    #else:
+    #    stack = mx.rnn.SequentialRNNCell()
+    #    for i in range(args.num_layers):
+    #        cell = mx.rnn.LSTMCell(num_hidden=args.num_hidden, prefix='lstm_l%d_'%i)
+    #        stack.add(cell)
 
     def sym_gen(seq_len):
         data = mx.sym.Variable('data')
         embed = mx.sym.Embedding(data=data, input_dim=vocab_size, output_dim=args.num_embed, name='input_embed')
-
-        stack.reset()
 
         # [batch_size, seq_len, num_hidden]
         pred, states = stack.unroll(seq_len, inputs=embed, layout='NTC', merge_outputs=True)
@@ -106,7 +106,7 @@ def test_sym_gen(args, vocab_size):
         # TODO: this is a constant, initialize it only one-time 
         #
         # [vocab_size] -> [vocab_size, num_hidden]
-        allLab = mx.sym.Variable('alllab', shape=(vocab_size-1,), dtype='float32')
+        allLab = mx.sym.Variable('alllab', shape=(vocab_size,), dtype='float32')
         labs = mx.sym.Embedding(data=allLab, input_dim=vocab_size, output_dim=args.num_hidden, name='output_embed')
 
         # [vocab_size]

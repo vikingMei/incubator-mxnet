@@ -1,7 +1,11 @@
+#!/usr/bin/env python
+#
+# coding: utf-8
+
 import numpy as np
 import mxnet as mx
 import argparse
-from repeatiter import RepeatIter
+#from repeatiter import RepeatIter
 
 parser = argparse.ArgumentParser(description="Train RNN on Penn Tree Bank",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -50,7 +54,7 @@ parser.add_argument('--dropout', type=float, default='0.0',
                     help='dropout probability (1.0 - keep probability)')
 
 #buckets = [32]
-buckets = [10, 20, 30, 40, 50, 60]
+buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
 start_label = 1
 invalid_label = 0
@@ -67,9 +71,9 @@ def get_data(layout):
     val_sent, _ = tokenize_text("./data/ptb.test.txt", vocab=vocab, start_label=start_label,
                                 invalid_label=invalid_label)
 
-    data_train  = RepeatIter(train_sent, args.batch_size, buckets=buckets,
+    data_train  = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, buckets=buckets,
                                             invalid_label=invalid_label, layout=layout, label_name="label")
-    data_val    = RepeatIter(val_sent, args.batch_size, buckets=buckets,
+    data_val    = mx.rnn.BucketSentenceIter(val_sent, args.batch_size, buckets=buckets,
                                             invalid_label=invalid_label, layout=layout, label_name="label")
 
     return data_train, data_val, vocab
@@ -145,8 +149,8 @@ def train(args):
         aux_params          = aux_params,
         begin_epoch         = args.load_epoch,
         num_epoch           = args.num_epochs,
-        monitor             = mx.mon.Monitor(args.disp_batches, mymonitor),
-        batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches),
+        #monitor             = mx.mon.Monitor(args.disp_batches, mymonitor),
+        batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches, auto_reset=False),
         epoch_end_callback  = mx.rnn.do_rnn_checkpoint(cell, args.model_prefix, 1)
                               if args.model_prefix else None)
 

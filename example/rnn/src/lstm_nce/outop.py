@@ -28,7 +28,7 @@ class NceOutput(mx.operator.CustomOp):
         data = in_data[0]
         label = in_data[1]
 
-        y = mx.nd.exp(data)
+        y = mx.nd.exp(data-9.0)
 
         self.assign(out_data[0], req[0], y)
 
@@ -63,7 +63,7 @@ class NceOutput(mx.operator.CustomOp):
         grad = grad+mask
         grad = -grad*labwgt
 
-        #self.idx += 1
+        self.idx += 1
         #if 1==self.idx%40:
         #    fname = './output/gradient/%03d' % self.idx
         #    grad.asnumpy().tofile(fname, sep='\n')
