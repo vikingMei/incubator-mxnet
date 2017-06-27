@@ -11,7 +11,7 @@ rm -rf ./output/*/*
 
 python ./src/cudnn_lstm_nce.py --model-prefix ./output/model/lstm \
     --disp-batches 40 \
-    --num-label 50 --lr 0.01 --batch-size 40 \
+    --num-label 10 --lr 0.01 --batch-size 40 \
     --wd 1e-5 \
-    --gpu 3 \
+    --gpu 1 \
     "$@"

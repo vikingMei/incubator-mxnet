@@ -20,7 +20,7 @@ def tokenize_text(fname, vocab=None, invalid_label=-1, start_label=0):
     """
     # read whole file, ans split each line into an word array
     lines = open(fname).readlines()
-    lines = [['<s>'] +filter(None, i.split(' ')) for i in lines]
+    lines = [filter(None, i.split(' ')) for i in lines]
 
     # map word list into id list
     sentences, vocab = mx.rnn.encode_sentences(lines, vocab=vocab, invalid_label=invalid_label, start_label=start_label)

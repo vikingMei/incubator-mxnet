@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
 import sys
 import json
 import argparse
@@ -10,9 +11,9 @@ import mxnet as mx
 
 from mxnet.base import MXNetError
 
-from loader import tokenize_text, get_nce_iter, get_repeat_iter
-from lstm_nce import LMNceIter, NceMetric
+from lstm_nce import NceMetric
 from lstm_nce_sym import train_sym_gen, test_sym_gen
+from loader import tokenize_text, get_nce_iter, get_repeat_iter
 
 pad_label = 0
 invalid_label = 1
@@ -37,6 +38,13 @@ def train(args):
     data_val, _, _ = reader(args.train_data, start_label, invalid_label, pad_label, 
             args.batch_size, buckets, args.num_label,
             vocab, freq)
+
+    # save vocab
+    if args.model_prefix:
+        pname = os.path.dirname( args.model_prefix)
+        pname = '%s/vocab.json' % pname 
+        with open(pname, 'w') as fid:
+            json.dump(vocab, fid)
 
     if args.gpus:
         contexts = [mx.gpu(int(i)) for i in args.gpus.split(',')]
@@ -88,17 +96,22 @@ def train(args):
 def test(args):
     assert args.model_prefix, "Must specifiy path to load from"
 
+    pname = '%s/vocab.json' % os.path.dirname(args.model_prefix)
+    with open(pname, 'r') as fid:
+        vocab = json.load(fid)
+
     # generate data iterator
     layout = 'NT'
-    train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=invalid_label)
-    assert None==vocab.get(''), "'' shouldn't appeare in sentences"
-    vocab[''] = pad_label
+    #train_sent, vocab, freq = tokenize_text(args.train_data, start_label=start_label, invalid_label=invalid_label)
+    #assert None==vocab.get(''), "'' shouldn't appeare in sentences"
+    #vocab[''] = pad_label
 
     test_sent, _, _ = tokenize_text(args.test_data, vocab, start_label=start_label, invalid_label=invalid_label)
 
+    # invlid_label below are used for padding, different from previous(which is <eos>)
     data_test = mx.rnn.BucketSentenceIter(test_sent, args.batch_size, 
             buckets=buckets,
-            invalid_label=invalid_label, 
+            invalid_label=pad_label, 
             label_name='label',
             data_name='data',
             layout=layout)
@@ -143,7 +156,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--test', default=False, action='store_true',
             help='whether to do testing instead of training')
-
     parser.add_argument('--model-prefix', type=str, default=None,
             help='path to save/load model')
     parser.add_argument('--load-epoch', type=int, default=0,
