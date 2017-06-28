@@ -380,7 +380,7 @@ class BaseModule(object):
             eval_batch_end_callback=None, initializer=Uniform(0.01),
             arg_params=None, aux_params=None, allow_missing=False,
             force_rebind=False, force_init=False, begin_epoch=0, num_epoch=None,
-            validation_metric=None, monitor=None):
+            validation_metric=None, monitor=None, valid_callback=None):
         """Trains the module parameters.
 
         Checkout `Module Tutorial <http://mxnet.io/tutorials/basic/module.html>`_ to see
@@ -500,18 +500,18 @@ class BaseModule(object):
                     monitor.toc_print()
                     
                 # 反向计算
-                if monitor is not None:
-                    monitor.tic()
+                #if monitor is not None:
+                #    monitor.tic()
                 self.backward()
-                if monitor is not None:
-                    monitor.toc_print()
+                #if monitor is not None:
+                #    monitor.toc_print()
 
-                if monitor is not None:
-                    monitor.tic()
+                #if monitor is not None:
+                #    monitor.tic()
                 self.update()
-                if monitor is not None:
-                    monitor.toc_print()
-                    print('end batch: %d' % monitor.step)
+                #if monitor is not None:
+                #    monitor.toc_print()
+                #    print('end batch: %d' % monitor.step)
                 try:
                     # pre fetch next batch
                     # 提前准备，做到pipeline并行
@@ -556,6 +556,9 @@ class BaseModule(object):
                 #TODO: pull this into default
                 for name, val in res:
                     self.logger.info('Epoch[%d] Validation-%s=%f', epoch, name, val)
+                
+                if valid_callback:
+                    valid_callback(epoch, self.symbol, arg_params, aux_params, res)
 
             # end of 1 epoch, reset the data-iter for another epoch
             train_data.reset()

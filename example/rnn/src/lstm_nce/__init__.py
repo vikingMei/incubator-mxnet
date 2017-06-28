@@ -4,6 +4,6 @@
 # Usage: 
 # Author: Summer Qing(qingyun.wu@aispeech.com)
 
-from .dataiter2 import LMNceIter
+from .dataiter2 import LMNceIter, gen_default_buckets
 from .metric import NceMetric
 from .outop import NceOutput

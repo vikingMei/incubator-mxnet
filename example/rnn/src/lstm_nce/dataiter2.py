@@ -14,6 +14,39 @@ import mxnet as mx
 from mxnet import ndarray
 from mxnet.io import DataIter, DataBatch
 
+import sys
+import numpy as np
+
+
+def gen_default_buckets(sentences, batch_size):
+    """
+    generate default buckets from data
+    """
+    len_dict = {}
+    max_len = -1
+    for item in sentences:
+        sentlen = len(item)
+        if sentlen > max_len:
+            max_len = sentlen
+
+        if sentlen in len_dict:
+            len_dict[sentlen] += 1
+        else:
+            len_dict[sentlen] = 1
+
+    tl = 0
+    buckets = []
+    for l, n in len_dict.items(): 
+        if l>9 and n + tl >= batch_size:
+            buckets.append(l)
+            tl = 0
+        else:
+            tl += n
+    if tl > 0:
+        buckets.append(max_len)
+
+    return buckets
+
 
 class dataPrepareProcess(mp.Process):
     """
@@ -113,9 +146,9 @@ class LMNceIter(DataIter):
 
         # generate buckets automatically
         if not buckets:
-            buckets = [i for i, j in enumerate(np.bincount([len(s) for s in sentences]))
-                       if j >= batch_size]
+            buckets = gen_default_buckets(sentences, batch_size) 
         buckets.sort()
+        print('using bucketing: ', buckets)
         self.buckets = buckets
 
         # put sentences into each bucket
@@ -189,6 +222,7 @@ class LMNceIter(DataIter):
         self.idx = []
         for i, buck in enumerate(self.data):
             self.idx.extend([(i, j) for j in range(0, len(buck) - batch_size + 1, batch_size)])
+        np.random.shuffle(self.idx)
         self.curr_idx = 0
 
         self.rand = rand
@@ -202,6 +236,7 @@ class LMNceIter(DataIter):
         self.curr_idx = 0
 
         if self.for_train and self.rand:
+            print('reset data iter')
             np.random.shuffle(self.idx)
             np.random.shuffle(self.negbuf)
 

@@ -64,9 +64,9 @@ class NceOutput(mx.operator.CustomOp):
         grad = -grad*labwgt
 
         self.idx += 1
-        #if 1==self.idx%40:
-        #    fname = './output/gradient/%03d' % self.idx
-        #    grad.asnumpy().tofile(fname, sep='\n')
+        #fname = './output/gradient/%03d' % self.idx
+        #print(fname)
+        #grad.asnumpy().tofile(fname, sep='\n')
 
         self.assign(in_grad[0], req[0], grad)
 

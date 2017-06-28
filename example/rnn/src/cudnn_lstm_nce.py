@@ -11,15 +11,17 @@ import mxnet as mx
 
 from mxnet.base import MXNetError
 
-from lstm_nce import NceMetric
+from lstm_nce import NceMetric, gen_default_buckets
 from lstm_nce_sym import train_sym_gen, test_sym_gen
 from loader import tokenize_text, get_nce_iter, get_repeat_iter
+from utils import get_lradpter
 
 pad_label = 0
 invalid_label = 1
 start_label = 2
 
 buckets = [10, 20, 30, 40, 50, 60, 70, 80]
+
 
 def train(args):
     if args.repeat:
@@ -30,7 +32,7 @@ def train(args):
     data_train, vocab, freq = reader(args.train_data, start_label, invalid_label, pad_label, 
             args.batch_size, buckets, args.num_label)
 
-    data_val, _, _ = reader(args.train_data, start_label, invalid_label, pad_label, 
+    data_val, _, _ = reader(args.valid_data, start_label, invalid_label, pad_label, 
             args.batch_size, buckets, args.num_label,
             vocab, freq)
     data_val.for_train = False
@@ -70,7 +72,6 @@ def train(args):
     if args.optimizer not in ['adadelta', 'adagrad', 'adam', 'rmsprop']:
         opt_params['momentum'] = args.mom
 
-
     model.fit(
         train_data          = data_train,
         eval_data           = data_val,
@@ -78,7 +79,7 @@ def train(args):
         kvstore             = args.kv_store,
         optimizer           = args.optimizer,
         optimizer_params    = opt_params, 
-        initializer         = mx.init.Xavier(factor_type="in", magnitude=2.34),
+        initializer         = mx.init.Xavier(factor_type="in", magnitude=0.12),
         arg_params          = arg_params,
         aux_params          = aux_params,
         begin_epoch         = args.load_epoch,
@@ -86,7 +87,8 @@ def train(args):
         #monitor             = mx.mon.Monitor(args.disp_batches, lambda x: x),
         batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches, auto_reset=False),
         epoch_end_callback  = mx.rnn.do_rnn_checkpoint(cell, args.model_prefix, 1)
-                              if args.model_prefix else None)
+                              if args.model_prefix else None,
+        valid_callback      = get_lradpter(model, cell, args.min_epoch, args.model_prefix))
 
 
 def test(args):
@@ -181,6 +183,7 @@ if __name__ == '__main__':
     parser.add_argument('--dropout', type=float, default='0.0', help='dropout probability (1.0 - keep probability)')
     parser.add_argument('--repeat', action='store_true', default=False, help='using repeat data iter or not')
     parser.add_argument('--lnz', type=float, default=9.0, help='normalization constant')
+    parser.add_argument('--min-epoch', type=int, default=4, help='minimize epoch before adjust learning rate')
 
     parser.add_argument('--num-label', type=int, default=20, help='number of label for each input')
     parser.add_argument('--bind-embeding', type=bool, default=False, help='whether bind input and out embeding matrix')

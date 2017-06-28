@@ -38,7 +38,7 @@ def tokenize_text(fname, vocab=None, invalid_label=-1, start_label=0):
 
 
 
-def get_nce_iter(fname, start_label, invalid_label, pad_label, batch_size, buckets, num_label, vocab=None, freq=None, rand=True):
+def get_nce_iter(fname, start_label, invalid_label, pad_label, batch_size, buckets=None, num_label=10, vocab=None, freq=None, rand=True):
     '''
     get data iter for nce train
     '''

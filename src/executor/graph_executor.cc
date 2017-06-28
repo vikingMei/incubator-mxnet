@@ -1246,8 +1246,9 @@ void GraphExecutor::RunOps(bool is_train, size_t topo_start, size_t topo_end) {
       LOG(FATAL) << "Not accessed";
     }
 
+    // VIKING{
     /*
-    if(strstr(opnode.opr_name, "_backward")) { // VIKING 
+    if(strstr(opnode.opr_name, "_backward")) {
         std::string name = inode.source->attrs.name;
 
         // get name for each in_grad
@@ -1272,7 +1273,7 @@ void GraphExecutor::RunOps(bool is_train, size_t topo_start, size_t topo_end) {
             long step = cpy.shape()[ndim-1];
 
             char fname[256] = {0};
-            sprintf(fname, "gradient/%s-%s", name.c_str(), output_names[i].c_str());
+            sprintf(fname, "output/gradient/%s-%s", name.c_str(), output_names[i].c_str());
 
             std::ofstream fs(fname, std::ofstream::app);
             fs << "\n============new============\n";
@@ -1291,8 +1292,10 @@ void GraphExecutor::RunOps(bool is_train, size_t topo_start, size_t topo_end) {
             fs << "\n";
             fs.close();
         }
-    } // VIKING
+    } 
     */
+    // }VIKING
+
     // Monitor callbacks
     if (monitor_callback_) {
       ExecuteMonCallback(nid);
