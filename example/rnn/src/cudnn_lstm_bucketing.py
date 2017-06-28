@@ -2,6 +2,7 @@
 #
 # coding: utf-8
 
+import os
 import numpy as np
 import mxnet as mx
 import argparse
@@ -42,6 +43,7 @@ parser.add_argument('--batch-size', type=int, default=32,
                     help='the batch size.')
 parser.add_argument('--disp-batches', type=int, default=50,
                     help='show progress for every n batches')
+parser.add_argument('--min-epoch', type=int, default=4, help='minimize epoch before adjust learning rate')
 # When training a deep, complex model, it's recommended to stack fused RNN cells (one
 # layer per cell) together instead of one with all layers. The reason is that fused RNN
 # cells doesn't set gradients to be ready until the computation for the entire layer is
@@ -56,8 +58,9 @@ parser.add_argument('--dropout', type=float, default='0.0',
 #buckets = [32]
 buckets = [10, 20, 30, 40, 50, 60, 70, 80]
 
-start_label = 1
-invalid_label = 0
+start_label = 2
+invalid_label = 1
+pad_label = 0
 
 def tokenize_text(fname, vocab=None, invalid_label=-1, start_label=0):
     lines = open(fname).readlines()
@@ -65,16 +68,20 @@ def tokenize_text(fname, vocab=None, invalid_label=-1, start_label=0):
     sentences, vocab = mx.rnn.encode_sentences(lines, vocab=vocab, invalid_label=invalid_label, start_label=start_label)
     return sentences, vocab
 
+
 def get_data(layout):
     train_sent, vocab = tokenize_text("./data/ptb.train.txt", start_label=start_label,
                                       invalid_label=invalid_label)
+    assert(None==vocab.get(''))
+    vocab[''] = pad_label 
+
     val_sent, _ = tokenize_text("./data/ptb.test.txt", vocab=vocab, start_label=start_label,
                                 invalid_label=invalid_label)
 
     data_train  = mx.rnn.BucketSentenceIter(train_sent, args.batch_size, buckets=buckets,
-                                            invalid_label=invalid_label, layout=layout, label_name="label")
+                                            invalid_label=pad_label, layout=layout, label_name="label")
     data_val    = mx.rnn.BucketSentenceIter(val_sent, args.batch_size, buckets=buckets,
-                                            invalid_label=invalid_label, layout=layout, label_name="label")
+                                            invalid_label=pad_label, layout=layout, label_name="label")
 
     return data_train, data_val, vocab
 
@@ -137,10 +144,49 @@ def train(args):
     def mymonitor(arr):
         return arr
 
+    model.curloss = 0.0
+    model.best_epoch = 0
+    def valcb(epoch, symbol, arg, aux, res):
+        '''
+        callback on epoch end
+
+        adjust learning rate accoring to current batch learning result
+        '''
+        oldloss = model.curloss
+        for name, loss in res:
+            lossname = name
+            model.curloss = loss
+            break
+        curloss = model.curloss
+
+        if epoch<=args.min_epoch:
+            model.best_epoch = epoch
+            return
+
+        prefix = args.model_prefix
+        if curloss-oldloss>1e-3:
+            # if new loss bigger than older loss, reload previous model
+            print("current loss: %f bigger than previous loss: %f, reload previous param" % (curloss, oldloss) )
+            fname = '%s-%04d.params' % (prefix, epoch)
+            os.rename(fname, '%s-%04d-fail.param'  % (prefix, epoch))
+
+            print('reload previous model: %s-%04d' % (prefix, model.best_epoch))
+            _, prearg, preaux = mx.rnn.load_rnn_checkpoint(cell, prefix, model.best_epoch)
+            for k,v in prearg.items():
+                arg[k] = v
+            for k,v in preaux.items():
+                aux[k] = v
+
+            # update learning rate
+            model._curr_module._optimizer.lr /= 2.0
+            print("update learning rate to %f" % model._curr_module._optimizer.lr)
+        else:
+            model.best_epoch = epoch
+
     model.fit(
         train_data          = data_train,
         eval_data           = data_val,
-        eval_metric         = mx.metric.Perplexity(invalid_label),
+        eval_metric         = mx.metric.Perplexity(pad_label),
         kvstore             = args.kv_store,
         optimizer           = args.optimizer,
         optimizer_params    = opt_params, 
@@ -152,7 +198,8 @@ def train(args):
         #monitor             = mx.mon.Monitor(args.disp_batches, mymonitor),
         batch_end_callback  = mx.callback.Speedometer(args.batch_size, args.disp_batches, auto_reset=False),
         epoch_end_callback  = mx.rnn.do_rnn_checkpoint(cell, args.model_prefix, 1)
-                              if args.model_prefix else None)
+                              if args.model_prefix else None,
+        valid_callback      = valcb)
 
 def test(args):
     assert args.model_prefix, "Must specifiy path to load from"
@@ -205,8 +252,9 @@ def test(args):
     _, arg_params, aux_params = mx.rnn.load_rnn_checkpoint(stack, args.model_prefix, args.load_epoch)
     model.set_params(arg_params, aux_params)
 
-    model.score(data_val, mx.metric.Perplexity(invalid_label),
-                batch_end_callback=mx.callback.Speedometer(args.batch_size, 5))
+    val = model.score(data_val, mx.metric.Perplexity(pad_label),
+                batch_end_callback=mx.callback.Speedometer(args.batch_size, 5, auto_reset=False))
+    print('final ppl: ', val)
 
 if __name__ == '__main__':
     import logging
