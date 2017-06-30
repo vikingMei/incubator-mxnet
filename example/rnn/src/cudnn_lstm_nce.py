@@ -4,6 +4,7 @@
 import os
 import sys
 import json
+import codecs
 import argparse
 
 import numpy as np
@@ -29,8 +30,15 @@ def train(args):
     else:
         reader = get_nce_iter
 
+    if args.vocab:
+        fid = open(args.vocab, 'r')
+        vocab = json.load(fid)
+        logging.debug('load vocab from [%s]' % args.vocab)
+    else:
+        vocab = None
+
     data_train, vocab, freq = reader(args.train_data, start_label, invalid_label, pad_label, 
-            args.batch_size, buckets, args.num_label)
+            args.batch_size, buckets, args.num_label, vocab)
 
     data_val, _, _ = reader(args.valid_data, start_label, invalid_label, pad_label, 
             args.batch_size, buckets, args.num_label,
@@ -41,7 +49,7 @@ def train(args):
     if args.model_prefix:
         pname = os.path.dirname( args.model_prefix)
         pname = '%s/vocab.json' % pname 
-        with open(pname, 'w') as fid:
+        with codecs.open(pname, 'w', 'utf-8') as fid:
             json.dump(vocab, fid)
 
     if args.gpus:
@@ -188,9 +196,11 @@ if __name__ == '__main__':
     parser.add_argument('--num-label', type=int, default=20, help='number of label for each input')
     parser.add_argument('--bind-embeding', type=bool, default=False, help='whether bind input and out embeding matrix')
 
-    parser.add_argument('--train-data', type=str, default='./data/ptb.train.txt', help='train data')
-    parser.add_argument('--valid-data', type=str, default='./data/ptb.valid.txt', help='valid data')
+    parser.add_argument('--train-data', type=str, default='./data/train.txt', help='train data')
+    parser.add_argument('--valid-data', type=str, default='./data/valid.txt', help='valid data')
     parser.add_argument('--test-data', type=str, default='./data/ptb.test.txt', help='test data')
+
+    parser.add_argument('--vocab', type=str, default=None, help='use pre-generate vocabulary instead of generate from corpus')
 
     args = parser.parse_args()
 

@@ -5,6 +5,7 @@
 # Author: Summer Qing(qingyun.wu@aispeech.com)
 
 import json
+import codecs
 import mxnet as mx
 from lstm_nce import LMNceIter 
 
@@ -19,8 +20,15 @@ def tokenize_text(fname, vocab=None, invalid_label=-1, start_label=0):
         freq: dict, frequence of each word
     """
     # read whole file, ans split each line into an word array
-    lines = open(fname).readlines()
-    lines = [filter(None, i.split(' ')) for i in lines]
+    lines = []
+    fid = codecs.open(fname, 'r', 'utf-8')
+    while 1:
+        line = fid.readline()
+        if not line:
+            break
+
+        line = line.strip().split(' ')
+        lines.append(line)
 
     # map word list into id list
     sentences, vocab = mx.rnn.encode_sentences(lines, vocab=vocab, invalid_label=invalid_label, start_label=start_label)
@@ -33,6 +41,11 @@ def tokenize_text(fname, vocab=None, invalid_label=-1, start_label=0):
                 freq[val] = 1
             else:
                 freq[val] += 1
+
+    # make all frequency bigger than 0
+    for wrd,id in vocab.items(): 
+        if not freq.get(id):
+            freq[id] = 1
 
     return sentences, vocab, freq
 
@@ -59,7 +72,7 @@ def get_nce_iter(fname, start_label, invalid_label, pad_label, batch_size, bucke
     else:
         # NOTE: in this function, will encode word that not in vocab build from train set and extend vocab, 
         # which may be undesired
-        sent, _, _ = tokenize_text(fname, vocab=vocab, start_label=start_label, invalid_label=invalid_label)
+        sent, vocab, freq = tokenize_text(fname, vocab=vocab, start_label=start_label, invalid_label=invalid_label)
 
     # layout, format of data and label. 'NT' means (batch_size, length) and 'TN' means (length, batch_size).
     dataiter  = LMNceIter(sent, batch_size, freq, layout=layout, buckets=buckets, pad_label=pad_label, num_label=num_label, rand=rand)
