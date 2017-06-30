@@ -33,5 +33,16 @@ def main(fname, fout):
 if "__main__"==__name__:
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    fname = '/asrdata/users/qyw16/tools/sources/mxnet.git/example/rnn/weibo_data/comm.vocab.118k.v5.wlist'
-    main(fname, 'vocab.json')
+
+    if len(sys.argv)<3:
+        print "USAGE: "
+        print "     %s vocab-list out" % sys.argv[0]
+        print ''
+        print 'EXAMPLE: '
+        print '     %s comm.vocab.118k.v5.wlist vocab.json'
+        sys.exit(0)
+
+    fname = sys.argv[1]
+    out = sys.argv[2]
+
+    main(fname, out)
