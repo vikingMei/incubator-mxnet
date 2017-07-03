@@ -51,7 +51,7 @@ def train_sym_gen(args, vocab_size, pad_label, negdisval=None):
         lnz = mx.sym.Variable('lnz', shape=(1), dtype='float32', init=mx.init.Constant(args.lnz))
         lnz = mx.sym.BlockGrad(lnz)
 
-        # map input to a embeding vector
+        # [batch_size, seq_len, num_embed]
         embedIn = mx.sym.Embedding(data, input_dim=vocab_size, output_dim=args.num_embed,name='input_embed')
 
         # pass embedding vector to lstm
@@ -80,9 +80,13 @@ def train_sym_gen(args, vocab_size, pad_label, negdisval=None):
         negprob = mx.sym.Reshape(negprob, shape=(-1, 0, args.num_label))
         negprob = mx.sym.BlockGrad(negprob, name='negprob_stop_gradient')
 
-        pred = mx.symbol.Custom(data=pred, label=label, label_weight=labwgt,
-                    negprob=negprob, lnz=lnz, 
-                    name='nce_output', op_type='NceOutput')
+        # C++ version
+        pred = mx.sym.NceOutput(pred, label=label, label_weight=labwgt, negdis=negprob, lnz=args.lnz, name='nce_output')
+
+        # python version
+        #pred = mx.symbol.Custom(data=pred, label=label, label_weight=labwgt,
+        #            negprob=negprob, lnz=lnz, 
+        #            name='nce_output', op_type='NceOutput')
 
         return pred, ('data',), ('label', 'label_weight')
 

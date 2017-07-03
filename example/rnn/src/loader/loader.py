@@ -4,7 +4,6 @@
 # Usage: 
 # Author: Summer Qing(qingyun.wu@aispeech.com)
 
-import json
 import codecs
 import mxnet as mx
 from lstm_nce import LMNceIter 
@@ -63,12 +62,6 @@ def get_nce_iter(fname, start_label, invalid_label, pad_label, batch_size, bucke
         assert None==vocab.get(''), "'' shouldn't appeare in sentences"
         vocab[''] = pad_label
         freq[str(pad_label)] = 0
-
-        with open('./output/vocab.json', 'w') as fid:
-            fid.write(json.dumps(vocab))
-
-        with open('./output/freq.json', 'w') as fid:
-            fid.write(json.dumps(freq))
     else:
         # NOTE: in this function, will encode word that not in vocab build from train set and extend vocab, 
         # which may be undesired

@@ -5,6 +5,6 @@
 
 source .bashrc
 python  ./src/cudnn_lstm_nce.py --test \
-    --model-prefix=./output/raw/lstm --gpus 0 \
+    --model-prefix=./output/model/lstm --gpus 0 \
     --batch-size 10 \
     --load-epoch "$@"

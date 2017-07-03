@@ -196,8 +196,8 @@ if __name__ == '__main__':
     parser.add_argument('--num-label', type=int, default=20, help='number of label for each input')
     parser.add_argument('--bind-embeding', type=bool, default=False, help='whether bind input and out embeding matrix')
 
-    parser.add_argument('--train-data', type=str, default='./data/train.txt', help='train data')
-    parser.add_argument('--valid-data', type=str, default='./data/valid.txt', help='valid data')
+    parser.add_argument('--train-data', type=str, default='./data/ptb.train.txt', help='train data')
+    parser.add_argument('--valid-data', type=str, default='./data/ptb.valid.txt', help='valid data')
     parser.add_argument('--test-data', type=str, default='./data/ptb.test.txt', help='test data')
 
     parser.add_argument('--vocab', type=str, default=None, help='use pre-generate vocabulary instead of generate from corpus')
