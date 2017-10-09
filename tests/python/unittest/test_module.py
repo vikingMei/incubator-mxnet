@@ -1,8 +1,30 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
 import mxnet as mx
 import mxnet.ndarray as nd
+from mxnet.test_utils import *
 import numpy as np
 from functools import reduce
 from mxnet.module.executor_group import DataParallelExecutorGroup
+from common import assertRaises
+from collections import namedtuple
+
+import numpy.random as rnd
 
 
 def test_module_dtype():
@@ -215,6 +237,70 @@ def test_module_switch_bucket():
     assert total_bytes_after == total_bytes_before
 
 
+
+def test_module_set_params():
+    # data iter
+    mx.random.seed(11)
+    data = mx.nd.array([[0.05, .10]]);
+    label = mx.nd.array([[.01, 0.99]]);
+    train_data = mx.io.NDArrayIter(data, label, batch_size=1)
+
+    # symbols
+    x = mx.symbol.Variable('data')
+    x = mx.symbol.FullyConnected(name='fc_0', data=x, num_hidden=2)
+    x = mx.symbol.Activation(name="act_0", data=x, act_type='sigmoid')
+    x = mx.symbol.FullyConnected(name='fc_1', data=x, num_hidden=2)
+    x = mx.symbol.Activation(name="act_1", data=x, act_type='sigmoid')
+    x = mx.symbol.LinearRegressionOutput(data=x, name='softmax', grad_scale=2)
+
+    # create module
+    mod = mx.mod.Module(x, context=[mx.cpu()]);
+    mod.bind(train_data.provide_data, label_shapes=train_data.provide_label,
+             for_training=True)
+
+    arg_params_correct = {'fc_0_weight': mx.nd.array([[.15, .20], [.25, .30]]),
+                  'fc_0_bias'  : mx.nd.array([.35, .35]),
+                  'fc_1_weight': mx.nd.array([[.40, .45], [.50, .55]]),
+                  'fc_1_bias'  : mx.nd.array([.60, .60])}
+
+    arg_params_missing = {'fc_0_weight': mx.nd.array([[.15, .20], [.25, .30]]),
+                  'fc_0_bias'  : mx.nd.array([.35, .35]),
+                  'fc_1_weight': mx.nd.array([[.40, .45], [.50, .55]])}
+
+    arg_params_extra = {'fc_0_weight': mx.nd.array([[.15, .20], [.25, .30]]),
+                  'fc_0_bias'  : mx.nd.array([.35, .35]),
+                  'fc_1_weight': mx.nd.array([[.40, .45], [.50, .55]]),
+                  'fc_1_bias'  : mx.nd.array([.60, .60]),
+                  'fc_2_weight': mx.nd.array([.60, .60])}
+
+    arg_params_missing_extra = {'fc_2_weight': mx.nd.array([.60, .60])}
+
+    # test regular set_params
+    mod.set_params(force_init=True, arg_params=arg_params_correct, aux_params={})
+
+    # test allow missing
+    mod.set_params(force_init=True, arg_params=arg_params_missing, aux_params={}, allow_missing=True)
+    assertRaises(RuntimeError, mod.set_params,
+                 force_init=True, arg_params=arg_params_missing,
+                 aux_params={}, allow_missing=False)
+
+    # test allow extra
+    mod.set_params(force_init=True, arg_params=arg_params_extra, aux_params={}, allow_missing=True, allow_extra=True)
+    assertRaises(ValueError, mod.set_params,
+                 force_init=True, arg_params=arg_params_extra,
+                 aux_params={}, allow_missing=True, allow_extra=False)
+
+    # test allow missing + extra,
+    assertRaises(RuntimeError, mod.set_params,
+                 force_init=True, arg_params=arg_params_missing_extra,
+                 aux_params={}, allow_missing=False, allow_extra=False)
+
+    # test allow missing + extra, this will throw a runtime error
+    assertRaises(ValueError, mod.set_params,
+                 force_init=True, arg_params=arg_params_missing_extra,
+                 aux_params={}, allow_missing=True, allow_extra=False)
+
+
 def test_monitor():
     # data iter
     mx.random.seed(11)
@@ -261,7 +347,6 @@ def test_monitor():
                 mon_result_counts[idx] += 1
                 break
     assert(mon_result_counts == [2, 2, 1, 6, 6, 4])
-
 
 def test_executor_group():
     def get_rnn_sym(num_layers, num_words, num_hidden, num_embed, seq_len):
@@ -375,13 +460,222 @@ def test_executor_group():
                            shared_arg_names=shared_arg_names, extra_args=extra_args)
 
 
+def test_factorization_machine_module():
+    """ Test factorization machine model with sparse operators """
+    mx.random.seed(11)
+    rnd.seed(11)
+
+    def fm(factor_size, feature_dim, init):
+        x = mx.symbol.Variable("data", stype='csr')
+        v = mx.symbol.Variable("v", shape=(feature_dim, factor_size),
+                               init=init, stype='row_sparse')
+
+        w1_weight = mx.symbol.var('w1_weight', shape=(feature_dim, 1),
+                                  init=init, stype='row_sparse')
+        w1_bias = mx.symbol.var('w1_bias', shape=(1))
+        w1 = mx.symbol.broadcast_add(mx.symbol.dot(x, w1_weight), w1_bias)
+
+        v_s = mx.symbol._internal._square_sum(data=v, axis=1, keepdims=True)
+        x_s = mx.symbol.square(data=x)
+        bd_sum = mx.sym.dot(x_s, v_s)
+
+        w2 = mx.symbol.dot(x, v)
+        w2_squared = 0.5 * mx.symbol.square(data=w2)
+
+        w_all = mx.symbol.Concat(w1, w2_squared, dim=1)
+        sum1 = mx.symbol.sum(data=w_all, axis=1, keepdims=True)
+        sum2 = 0.5 * mx.symbol.negative(bd_sum)
+        model = mx.sym.elemwise_add(sum1, sum2)
+
+        y = mx.symbol.Variable("label")
+        model = mx.symbol.LinearRegressionOutput(data=model, label=y)
+        return model
+
+    # model
+    ctx = default_context()
+    init = mx.initializer.Normal(sigma=0.01)
+    factor_size = 4
+    feature_dim = 10000
+    model = fm(factor_size, feature_dim, init)
+
+    # data iter
+    num_batches = 5
+    batch_size = 64
+    num_samples = batch_size * num_batches
+    # generate some random csr data
+    csr_nd = rand_ndarray((num_samples, feature_dim), 'csr', 0.1)
+    label = mx.nd.ones((num_samples,1))
+    # the alternative is to use LibSVMIter
+    train_iter = mx.io.NDArrayIter(data=csr_nd, label={'label':label},
+                                   batch_size=batch_size, last_batch_handle='discard')
+    # create module
+    mod = mx.mod.Module(symbol=model, data_names=['data'], label_names=['label'])
+    # allocate memory by given the input data and lable shapes
+    mod.bind(data_shapes=train_iter.provide_data, label_shapes=train_iter.provide_label)
+    # initialize parameters by random numbers
+    mod.init_params(initializer=init)
+    # use sparse Adam with learning rate 0.1 to train
+    adam = mx.optimizer.Adam(clip_gradient=5.0, learning_rate=0.001, rescale_grad=1.0/batch_size)
+    mod.init_optimizer(optimizer=adam)
+    # use MSE as the metric
+    metric = mx.metric.create('MSE')
+    # train 10 epochs
+    for epoch in range(10):
+        train_iter.reset()
+        metric.reset()
+        for batch in train_iter:
+            mod.forward(batch, is_train=True)       # compute predictions
+            mod.update_metric(metric, batch.label)  # accumulate prediction accuracy
+            mod.backward()                          # compute gradients
+            mod.update()                            # update parameters
+        # print('Epoch %d, Training %s' % (epoch, metric.get()))
+    assert(metric.get()[1] < 0.05), metric.get()[1]
+
+
+def test_module_initializer():
+    def regression_model(m):
+         x = mx.symbol.var("data", stype='csr')
+         v = mx.symbol.var("v", shape=(m, 1), init=mx.init.Uniform(scale=.1),
+                                stype='row_sparse')
+         model = mx.symbol.dot(lhs=x, rhs=v)
+         y = mx.symbol.Variable("label")
+         model = mx.symbol.LinearRegressionOutput(data=model, label=y, name="out")
+         return model
+
+    n, m = 128, 100
+    model = regression_model(m)
+
+    data = mx.nd.zeros(shape=(n, m), stype='csr')
+    label = mx.nd.zeros((n, 1))
+    iterator = mx.io.NDArrayIter(data=data, label={'label':label},
+                                 batch_size=n, last_batch_handle='discard')
+
+    # create module
+    mod = mx.mod.Module(symbol=model, data_names=['data'], label_names=['label'])
+    mod.bind(data_shapes=iterator.provide_data, label_shapes=iterator.provide_label)
+    mod.init_params()
+    v = mod._arg_params['v']
+    assert(v.stype == 'row_sparse')
+    assert(np.sum(v.asnumpy()) != 0)
+
+def test_forward_reshape():
+    num_class=10
+    data1 = mx.sym.Variable('data1')
+    data2 = mx.sym.Variable('data2')
+    conv1 = mx.sym.Convolution(data=data1, kernel=(2, 2), num_filter=2, stride=(2, 2))
+    conv2 = mx.sym.Convolution(data=data2, kernel=(3, 3), num_filter=3, stride=(1, 1))
+    pooling1 = mx.sym.Pooling(data=conv1, kernel=(2, 2), stride=(1, 1), pool_type="avg")
+    pooling2 = mx.sym.Pooling(data=conv2, kernel=(2, 2), stride=(1, 1), pool_type="max")
+    flatten1 = mx.sym.flatten(data=pooling1)
+    flatten2 = mx.sym.flatten(data=pooling2)
+    sum = mx.sym.sum(data=flatten1, axis=1) + mx.sym.sum(data=flatten2, axis=1)
+    fc = mx.sym.FullyConnected(data=sum, num_hidden=num_class)
+    sym = mx.sym.SoftmaxOutput(data=fc, name='softmax')
+
+    dshape1 = (10, 3, 64, 64)
+    dshape2 = (10, 3, 32, 32)
+    lshape = (10,)
+
+    mod = mx.mod.Module(symbol=sym, data_names=['data1', 'data2'],
+                        label_names=['softmax_label'])
+    mod.bind(data_shapes=[('data1', dshape1), ('data2', dshape2)],
+             label_shapes=[('softmax_label', lshape)])
+    mod.init_params()
+    mod.init_optimizer(optimizer_params={'learning_rate': 0.01})
+
+    # Train with original data shapes
+    data_batch = mx.io.DataBatch(data=[mx.nd.random.uniform(0, 9, dshape1),
+                                       mx.nd.random.uniform(5, 15, dshape2)],
+                                 label=[mx.nd.ones(lshape)])
+    mod.forward(data_batch)
+    assert mod.get_outputs()[0].shape == tuple([lshape[0], num_class])
+    mod.backward()
+    mod.update()
+
+    # Train with different batch size
+    dshape1 = (3, 3, 64, 64)
+    dshape2 = (3, 3, 32, 32)
+    lshape = (3,)
+    data_batch = mx.io.DataBatch(data=[mx.nd.random.uniform(0, 9, dshape1),
+                                       mx.nd.random.uniform(5, 15, dshape2)],
+                                 label=[mx.nd.ones(lshape)])
+    mod.forward(data_batch)
+    assert mod.get_outputs()[0].shape == tuple([lshape[0], num_class])
+    mod.backward()
+    mod.update()
+
+    dshape1 = (20, 3, 64, 64)
+    dshape2 = (20, 3, 32, 32)
+    lshape = (20,)
+    data_batch = mx.io.DataBatch(data=[mx.nd.random.uniform(3, 5, dshape1),
+                                       mx.nd.random.uniform(10, 25, dshape2)],
+                                 label=[mx.nd.ones(lshape)])
+    mod.forward(data_batch)
+    assert mod.get_outputs()[0].shape == tuple([lshape[0], num_class])
+    mod.backward()
+    mod.update()
+
+    #Train with both different batch size and data shapes
+    dshape1 = (20, 3, 120, 120)
+    dshape2 = (20, 3, 32, 64)
+    lshape = (20,)
+    data_batch = mx.io.DataBatch(data=[mx.nd.random.uniform(0, 9, dshape1),
+                                       mx.nd.random.uniform(5, 15, dshape2)],
+                                 label=[mx.nd.ones(lshape)])
+    mod.forward(data_batch)
+    assert mod.get_outputs()[0].shape == tuple([lshape[0], num_class])
+    mod.backward()
+    mod.update()
+
+    dshape1 = (5, 3, 28, 40)
+    dshape2 = (5, 3, 24, 16)
+    lshape = (5,)
+    data_batch = mx.io.DataBatch(data=[mx.nd.random.uniform(0, 9, dshape1),
+                                       mx.nd.random.uniform(15, 25, dshape2)],
+                                 label=[mx.nd.ones(lshape)])
+    mod.forward(data_batch)
+    assert mod.get_outputs()[0].shape == tuple([lshape[0], num_class])
+    mod.backward()
+    mod.update()
+
+    #Test score
+    dataset_shape1 = (30, 3, 30, 30)
+    dataset_shape2 = (30, 3, 20, 40)
+    labelset_shape = (30,)
+
+    eval_dataiter = mx.io.NDArrayIter(data=[mx.nd.random.uniform(0, 9, dataset_shape1),
+                                            mx.nd.random.uniform(15, 25, dataset_shape2)],
+                                      label=[mx.nd.ones(labelset_shape)],
+                                      batch_size=5)
+    assert len(mod.score(eval_data=eval_dataiter, eval_metric='acc')) == 1
+
+    #Test prediction
+    dshape1 = (1, 3, 30, 30)
+    dshape2 = (1, 3, 20, 40)
+    dataset_shape1 = (10, 3, 30, 30)
+    dataset_shape2 = (10, 3, 20, 40)
+
+    pred_dataiter = mx.io.NDArrayIter(data=[mx.nd.random.uniform(0, 9, dataset_shape1),
+                                            mx.nd.random.uniform(15, 25, dataset_shape2)])
+    mod.bind(data_shapes=[('data1', dshape1), ('data2', dshape2)],
+             for_training=False, force_rebind=True)
+    assert mod.predict(pred_dataiter).shape == tuple([10, num_class])
+
+    #Test forward with other data batch API
+    Batch = namedtuple('Batch', ['data'])
+    data = mx.sym.Variable('data')
+    out = data * 2
+    mod = mx.mod.Module(symbol=out, label_names=None)
+    mod.bind(data_shapes=[('data', (1, 10))])
+    mod.init_params()
+    data1 = [mx.nd.ones((1, 10))]
+    mod.forward(Batch(data1))
+    assert mod.get_outputs()[0].shape == (1, 10)
+    data2 = [mx.nd.ones((3, 5))]
+    mod.forward(Batch(data2))
+    assert mod.get_outputs()[0].shape == (3, 5)
+
+
 if __name__ == '__main__':
-    test_module_dtype()
-    test_module_input_grads()
-    test_module_states()
-    test_module_reshape()
-    test_save_load()
-    test_module_layout()
-    test_module_switch_bucket()
-    test_monitor()
-    test_executor_group()
+    import nose
+    nose.runmodule()

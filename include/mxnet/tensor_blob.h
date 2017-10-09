@@ -1,5 +1,23 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 /*!
- *  Copyright (c) 2014 by Contributors
  * \file tensor_blob.h
  * \brief TBlob class that holds common representation of
  *  arbirary dimension tensor, can be used to transformed
@@ -290,6 +308,34 @@ class TBlob {
       mshadow::Stream<Device> *stream = NULL) const {
     return this->get_with_shape<Device, 3, DType>(
         this->shape_.FlatTo3D(axis_begin, axis_end), stream);
+  }
+  /*!
+   * \brief flatten the tensor to specified number of dimensions,
+   *  collapse the highest dimensions or pad with higher dimensions
+   * \param stream the possible stream target tensor should reside on
+   * \tparam Device which device the tensor is on
+   * \tparam dim desired number of dimensions of returned tensor
+   * \tparam DType the type of elements in the tensor
+   * \return tensor after flatten
+   */
+  template<typename Device, int dim, typename DType>
+  inline mshadow::Tensor<Device, dim, DType> FlatToKD(
+     mshadow::Stream<Device> *stream = NULL) const {
+    mshadow::Shape<dim> shape;
+    shape[0] = 1;
+    // Pad higher dimensions in case dim > ndim()
+    for (int i = 0; i < dim - ndim(); ++i) {
+      shape[i] = 1;
+    }
+    // Collapse higher dimensions in case dim < ndim()
+    for (int i = 0; i < ndim() - dim + 1; ++i) {
+      shape[0] *= shape_[i];
+    }
+    // Preserve lower dimensions.
+    for (int i = std::max(0, ndim() - dim + 1); i < ndim(); ++i) {
+      shape[i - ndim() + dim] = shape_[i];
+    }
+    return this->get_with_shape<Device, dim, DType>(shape, stream);
   }
 
  private:

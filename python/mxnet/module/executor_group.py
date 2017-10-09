@@ -1,3 +1,20 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
 # pylint: disable=too-many-instance-attributes,too-many-locals
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments
 """Executor group is a convenient tool for managing a group of executors."""
@@ -111,8 +128,8 @@ class DataParallelExecutorGroup(object):
     shared_group : DataParallelExecutorGroup
         Defaults to ``None``. This is used in bucketing. When not ``None``, it should be a executor
         group corresponding to a different bucket. In other words, it will correspond to a different
-        symbol but with the same set of parameters (e.g. unrolled RNNs with different lengths).
-        In this case, many memory will be shared.
+        symbol with the same set of parameters (e.g. unrolled RNNs with different lengths).
+        In this case the memory regions of the parameters will be shared.
     logger : Logger
         Default is `logging`.
     fixed_param_names: list of str
@@ -330,7 +347,7 @@ class DataParallelExecutorGroup(object):
             self._default_execs = [i for i in self.execs]
         self.bind_exec(data_shapes, label_shapes, reshape=True)
 
-    def set_params(self, arg_params, aux_params):
+    def set_params(self, arg_params, aux_params, allow_extra=False):
         """Assign, i.e. copy parameters to all the executors.
 
         Parameters
@@ -339,9 +356,13 @@ class DataParallelExecutorGroup(object):
             A dictionary of name to `NDArray` parameter mapping.
         aux_params : dict
             A dictionary of name to `NDArray` auxiliary variable mapping.
+        allow_extra : boolean, optional
+            Whether allow extra parameters that are not needed by symbol.
+            If this is True, no error will be thrown when arg_params or aux_params
+            contain extra parameters that is not needed by the executor.
         """
         for exec_ in self.execs:
-            exec_.copy_params_from(arg_params, aux_params)
+            exec_.copy_params_from(arg_params, aux_params, allow_extra_params=allow_extra)
 
     def get_params(self, arg_params, aux_params):
         """ Copy data from each executor to `arg_params` and `aux_params`.
