@@ -1,26 +1,14 @@
-RNN Example
+Recurrent Neural Network Examples
 ===========
-This folder contains RNN examples using high level mxnet.rnn interface.
 
-Examples using low level symbol interface have been deprecated and moved to old/
+This directory contains functions for creating recurrent neural networks
+models using high level mxnet.rnn interface.
 
-## Data
-Run `get_ptb_data.sh` to download PenTreeBank data.
+Here is a short overview of what is in this directory.
 
-## Python
-
-- [lstm_bucketing.py](lstm_bucketing.py) PennTreeBank language model by using LSTM
-
-Performance Note:
-More ```MXNET_GPU_WORKER_NTHREADS``` may lead to better performance. For setting ```MXNET_GPU_WORKER_NTHREADS```, please refer to [Environment Variables](https://mxnet.readthedocs.org/en/latest/how_to/env_var.html).
-
-
-## multi-gpu
-DataDesc.layout: NCHW
-   get_batch_axis: 获取batch对应的维度 
-然后，根据gpu的数目，在batch这个维度上进行切分
-
-问题:
-    1. 数据输入格式: TN
-    2. DataDecs.layout: NCHW, 会按照第一个维度切分, 与实际不符
-    具体代码见: mxnet/module/executor_group.py, line 300左右
+Directory | What's in it?
+--- | ---
+`word_lm/` | Language model trained on the PTB dataset achieving state of the art performance
+`bucketing/` | Language model with bucketing API with python
+`bucket_R/` | Language model with bucketing API with R
+`old/` | Language model trained with low level symbol interface (deprecated)
