@@ -37,7 +37,7 @@ namespace engine {
  */
 struct OprExecStat {
   /*! \brief operation name */
-  char opr_name[32];
+  char opr_name[256];
   /*!
    * \brief operation execution start relative timestamp
    *        time unit is microsecond (10^-6 s)

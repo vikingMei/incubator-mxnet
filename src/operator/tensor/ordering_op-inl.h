@@ -314,7 +314,7 @@ void TopK(const nnvm::NodeAttrs& attrs,
           const std::vector<TBlob>& outputs) {
   const TopKParam& param = nnvm::get<TopKParam>(attrs.parsed);
   // TODO(sxjscience) We can support inplace in the future
-  CHECK_EQ(req[0], kWriteTo) << "TopK does not support inplace";
+  //CHECK_EQ(req[0], kWriteTo) << "TopK does not support inplace";
   TopKImpl<xpu>(ctx.run_ctx, ctx.requested[0], inputs[0], outputs, param);
 }
 
