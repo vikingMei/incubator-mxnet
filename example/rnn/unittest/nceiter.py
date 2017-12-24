@@ -2,7 +2,6 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
 
 import os
 import sys
