@@ -2,7 +2,6 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: Summer Qing(qingyun.wu@aispeech.com)
 
 import mxnet as mx
 

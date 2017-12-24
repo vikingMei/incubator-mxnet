@@ -3,7 +3,6 @@
 #
 # Usage: find the bucketing by danamic progamming(experiment version)
 #
-# Author: Summer Qing(qingyun.wu@aispeech.com)
 
 import numpy as np
 

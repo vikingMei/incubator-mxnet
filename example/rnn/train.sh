@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 #
-# Usage: 
-# Author: Summer Qing(qingyun.wu@aispeech.com)
 
 # set mxnet to current version instead of system install version 
 source ./.bashrc
