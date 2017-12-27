@@ -132,5 +132,9 @@ if __name__ == '__main__':
             test_loss = evaluate(module, test_data, epoch, 'Test', bptt, batch_size)
         else:
             optimizer.lr *= 0.25
+
+        module.save_checkpoint('output/model', epoch)
+
         train_data.reset()
     logging.info("Training completed. ")
+    module.save_params('./output/final.mdl')

@@ -31,17 +31,13 @@ def rnn(bptt, vocab_size, num_embed, nhid,
     outputs = mx.sym.Dropout(embed, p=dropout)
     for i in range(num_layers):
         prefix = 'lstm_l%d_' % i
+
         cell = mx.rnn.FusedRNNCell(num_hidden=nhid, prefix=prefix, get_next_state=True,
                                    forget_bias=0.0, dropout=dropout)
-        state_shape = (1, batch_size, nhid)
-        begin_cell_state_name = prefix + 'cell'
-        begin_hidden_state_name = prefix + 'hidden'
-        begin_cell_state = mx.sym.var(begin_cell_state_name, shape=state_shape)
-        begin_hidden_state = mx.sym.var(begin_hidden_state_name, shape=state_shape)
-        state_names += [begin_cell_state_name, begin_hidden_state_name]
+
         outputs, next_states = cell.unroll(bptt, inputs=outputs,
-                                           begin_state=[begin_cell_state, begin_hidden_state],
                                            merge_outputs=True, layout='TNC')
+
         outputs = mx.sym.Dropout(outputs, p=dropout)
         states += next_states
 
@@ -55,7 +51,9 @@ def rnn(bptt, vocab_size, num_embed, nhid,
     else:
         pred = mx.sym.FullyConnected(data=pred, num_hidden=vocab_size, name='pred')
     pred = mx.sym.Reshape(pred, shape=(-1, vocab_size))
+
     return pred, [mx.sym.stop_gradient(s) for s in states], state_names
+
 
 def softmax_ce_loss(pred):
     # softmax cross-entropy loss

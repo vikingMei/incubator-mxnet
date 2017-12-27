@@ -132,3 +132,23 @@ class CustomStatefulModule():
         """Gets the output loss of the previous forward computation.
         """
         return self._module.get_outputs(merge_multi_context=False)[-1]
+
+    def save_params(self, fname):
+        """
+        save current parameter to file
+        """
+        self._module.save_params(fname)
+
+    def save_checkpoint(self, prefix, epoch, save_optimizer_states=False):
+        """
+        save current checkpoint to file
+        """
+        self._module.save_checkpoint(prefix, epoch, save_optimizer_states)
+
+    @staticmethod
+    def load_model(prefix, epoch):
+        (net, aux_args, aux_param) = mx.model.load_checkpoint(prefix, epoch)
+        model =  mx.module.Module(net, label_names=[])
+        model.bind(for_training=False, data_shapes=(40, ))
+        model.set_params(aux_args, aux_param)
+        return model
