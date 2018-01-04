@@ -27,6 +27,9 @@
 #include <vector>
 #include <algorithm>
 
+#include <fstream>
+#include <iomanip>
+
 #include "./exec_pass.h"
 #include "./graph_executor.h"
 #include "../engine/profiler.h"
@@ -245,6 +248,7 @@ inline ValueType get_node_attr(
     return ret;
   }
 }
+ 
 
 /*!
  * \brief Create the graph for backward pass.
@@ -1448,6 +1452,73 @@ void GraphExecutor::RunOps(bool is_train, size_t topo_start, size_t topo_end) {
     } else {
       LOG(FATAL) << "Not accessed";
     }
+
+    { // VIKING
+	const char *dump_result = getenv("MXNET_DEBUG_DUMP");
+	if (dump_result) { 
+	    std::string name = inode.source->attrs.name;
+
+	    std::string dumptyp = dump_result;
+	    bool flag = false;
+
+	    if ("all"==dumptyp) {
+		flag = true;
+	    } else if ("backward"==dumptyp) {
+		if (strstr(opnode.opr_name, "_backward") ) {
+		    flag = true;
+		}
+	    } else if ("forward"==dumptyp) {
+		if (!strstr(opnode.opr_name, "_backward") ) {
+		    flag = true;
+		}
+	    }
+
+	    if(flag) {
+		// get name for each in_grad
+		static const auto& flist_outputs = nnvm::Op::GetAttr<nnvm::FListOutputNames>("FListOutputNames");
+		std::vector<std::string> output_names;
+		const auto& node = inode.source;
+		if (flist_outputs.count(node->op())) {
+		    output_names = flist_outputs[node->op()](node->attrs);
+		} else {
+		    for (size_t i = 0; i < node->num_outputs(); ++i) {
+			output_names.emplace_back(std::to_string(i));
+		    }
+		}
+
+		int i;
+		for(i=0; i<opnode.exec->out_array.size(); ++i) {
+		    NDArray cpy = opnode.exec->out_array[i].Copy(Context());
+		    cpy.WaitToRead();
+
+		    long sz = cpy.shape().Size();
+		    long ndim = cpy.shape().ndim();
+		    long step = cpy.shape()[ndim-1];
+
+		    char fname[256] = {0};
+		    sprintf(fname, "output/step/%s-%s", name.c_str(), output_names[i].c_str());
+
+		    std::ofstream fs(fname, std::ofstream::app);
+		    fs << "\n============new============\n";
+		    fs << "NAME:" << fname << "\n";
+
+		    long j;
+		    float* ptr = (float*)cpy.data().dptr_; 
+		    printf("write [%s]\n", fname);
+		    for(j=0; j<sz; ++j) {
+			if(0==j%step) {
+			    fs << "\n" << static_cast<void*>(ptr+j) << "\t";
+			}
+			fs << std::setiosflags(std::ios_base::fixed) 
+			    << std::setprecision(20) << ptr[j] << ", " ;
+		    }
+		    fs << "\n";
+		    fs.close();
+		}
+	    }
+	}
+    } // VIKING
+
     // Monitor callbacks
     if (monitor_callback_) {
       ExecuteMonCallback(nid);
