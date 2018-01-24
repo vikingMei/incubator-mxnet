@@ -30,7 +30,7 @@ then
 fi
 
 RNN_DIR=$(cd `dirname $0`; pwd)
-DATA_DIR="${RNN_DIR}"
+DATA_DIR="${RNN_DIR}/data/"
 
 if [[ ! -d "${DATA_DIR}" ]]; then
   echo "${DATA_DIR} doesn't exist, will create one";
