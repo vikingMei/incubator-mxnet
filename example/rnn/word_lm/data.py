@@ -15,8 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import os, gzip
+import os
 import sys
+import gzip
+import json
 import mxnet as mx
 import numpy as np
 
@@ -34,6 +36,11 @@ class Dictionary(object):
         index = self.word2idx[word]
         self.word_count[index] += 1
         return index
+
+    def dump(self, fname):
+        fid = open(fname, 'w')
+        json.dump(self.word2idx, fid)
+        fid.close()
 
     def __len__(self):
         return len(self.idx2word)

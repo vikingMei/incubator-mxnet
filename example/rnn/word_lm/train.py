@@ -15,14 +15,20 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import pdb
+import math
+import json
+import logging
+import argparse
+
 import numpy as np
 import mxnet as mx, math
-import argparse, math
-import logging
-from data import Corpus, CorpusIter
+from mxnet.model import BatchEndParam
+
 from model import *
 from module import *
-from mxnet.model import BatchEndParam
+from data import Corpus, CorpusIter
+
 
 parser = argparse.ArgumentParser(description='PennTreeBank LSTM Language Model')
 parser.add_argument('--data', type=str, default='./data/ptb.',
@@ -51,6 +57,7 @@ parser.add_argument('--log-interval', type=int, default=200,
                     help='report interval')
 parser.add_argument('--seed', type=int, default=3,
                     help='random seed')
+parser.add_argument('--output', type=str, default='./output')
 args = parser.parse_args()
 
 best_loss = 9999
@@ -65,8 +72,7 @@ def evaluate(valid_module, data_iter, epoch, mode, bptt, batch_size):
         nbatch += 1
     data_iter.reset()
     loss = total_loss / bptt / batch_size / nbatch
-    logging.info('Iter[%d] %s loss:\t%.7f, Perplexity: %.7f' % \
-                 (epoch, mode, loss, math.exp(loss)))
+    logging.info('Iter[%d] %s loss:\t%.7f, Perplexity: %.7f' % (epoch, mode, loss, math.exp(loss)))
     return loss
 
 if __name__ == '__main__':
@@ -75,7 +81,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format=head)
     args = parser.parse_args()
     logging.info(args)
-    ctx = mx.gpu()
+    ctx = mx.gpu(0)
     batch_size = args.batch_size
     bptt = args.bptt
     mx.random.seed(args.seed)
@@ -87,9 +93,11 @@ if __name__ == '__main__':
     valid_data = CorpusIter(corpus.valid, batch_size, bptt)
     test_data = CorpusIter(corpus.test, batch_size, bptt)
 
+    # save vocab
+    corpus.dictionary.dump('%s/vocab.json'%args.output)
+
     # model
-    pred, states, state_names = rnn(bptt, ntokens, args.emsize, args.nhid,
-                                    args.nlayers, args.dropout, batch_size, args.tied)
+    pred, states, state_names = rnn(bptt, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, batch_size, args.tied)
     loss = softmax_ce_loss(pred)
 
     # module
@@ -132,9 +140,7 @@ if __name__ == '__main__':
             test_loss = evaluate(module, test_data, epoch, 'Test', bptt, batch_size)
         else:
             optimizer.lr *= 0.25
-
-        module.save_checkpoint('output/model', epoch)
-
+        module.save_checkpoint(args.output + '/model', epoch)
         train_data.reset()
     logging.info("Training completed. ")
-    module.save_params('./output/final.mdl')
+    module.save_params(args.output +'/final.mdl')
