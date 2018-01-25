@@ -52,42 +52,40 @@ class Dictionary(object):
         return len(self.idx2word)
 
 class Corpus(object):
-    def __init__(self, path):
+    def __init__(self, path, is_train=False):
         self.dictionary = Dictionary()
         self.train = self.tokenize(path + 'train.txt')
         self.valid = self.tokenize(path + 'valid.txt')
         self.test = self.tokenize(path + 'test.txt')
 
         self.negative = []  
+
+        negdis = [1]*len(self.dictionary.word_count)
         for idx,freq in enumerate(self.dictionary.word_count):
             # skip <unk> and <eos>
             if idx<2 or freq<5:
+                negdis[idx] = 0
                 continue
             v = int(math.pow(freq * 1.0, 0.75))
-            self.negative.extend([idx for _ in range(v)])
+            negdis[idx] = v
+            self.negative.extend([idx]*v)
+        
+        self.negdis = mx.nd.array(negdis,dtype='float32')
+        tmp = self.negdis.sum()
+        self.negdis = self.negdis/tmp
 
 
     def tokenize(self, path):
         """Tokenizes a text file."""
         assert os.path.exists(path)
         # Add words to the dictionary
+        ids = []
         with open(path, 'r') as f:
-            tokens = 0
-            for line in f:
-                words = line.split() + ['<eos>']
-                tokens += len(words)
-                for word in words:
-                    self.dictionary.add_word(word)
-
-        # Tokenize file content
-        with open(path, 'r') as f:
-            ids = np.zeros((tokens,), dtype='int32')
-            token = 0
             for line in f:
                 words = line.split() + ['<eos>']
                 for word in words:
-                    ids[token] = self.dictionary.word2idx[word]
-                    token += 1
+                    wid = self.dictionary.add_word(word)
+                    ids.append(wid)
 
         return mx.nd.array(ids, dtype='int32')
 
@@ -111,6 +109,7 @@ class CorpusIter(mx.io.DataIter):
         self._bptt = bptt
         self._source = batchify(source, batch_size)
 
+
     def iter_next(self):
         i = self._index
         if i+self._bptt > self._source.shape[0] - 1:
@@ -119,6 +118,7 @@ class CorpusIter(mx.io.DataIter):
         self._next_label = self._source[i+1:i+1+self._bptt].astype(np.float32)
         self._index += self._bptt
         return True
+
 
     def next(self):
         if self.iter_next():
@@ -145,6 +145,7 @@ class NceCorpusIter(CorpusIter):
         self.negative = negative
         label_shape = (bptt, batch_size, num_label)
         self.provide_label = [('label', label_shape, np.int32), ('label_weight', label_shape)]
+        self.provide_data = [('data', (bptt, batch_size), np.int32)]
 
     def getlabel(self):
         return [*self._next_label]

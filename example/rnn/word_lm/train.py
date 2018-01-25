@@ -62,6 +62,8 @@ parser.add_argument('--use-nce', action='store_true',
                     help='whether use nce loss')
 parser.add_argument('--num-label', type=int, default=10,
                     help='numbel of label, include 1 positive label')
+parser.add_argument('--lnz', type=int, default=9,
+                    help='lnz used to normalization lstm network output')
 args = parser.parse_args()
 
 best_loss = 9999
@@ -142,12 +144,14 @@ if __name__ == '__main__':
 
     # model
     loss, states, state_names = rnn(bptt, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, batch_size, 
-            args.tied, args.use_nce)
+            args.tied, args.use_nce, corpus.negdis, args.lnz)
 
-    label_names = ('label','label_weight') if args.use_nce else ('label',)
+    label_names = [x[0] for x in train_data.provide_label] 
+    data_names = [x[0] for x in train_data.provide_data] 
 
     # module
-    module = CustomStatefulModule(loss, states, state_names=state_names, label_names=label_names, context=ctx)
+    module = CustomStatefulModule(loss, states, data_names=data_names, label_names=label_names,
+            state_names=state_names, context=ctx)
     module.bind(data_shapes=train_data.provide_data, label_shapes=train_data.provide_label)
     module.init_params(initializer=mx.init.Xavier())
     optimizer = mx.optimizer.create('sgd', learning_rate=args.lr, rescale_grad=1.0/batch_size)
