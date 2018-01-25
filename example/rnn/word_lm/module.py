@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import pdb
 import mxnet as mx
 import logging
 
@@ -128,10 +129,26 @@ class CustomStatefulModule():
             grad_array += grad
         return mx.gluon.utils.clip_global_norm(grad_array, max_norm)
 
-    def get_loss(self):
+    def get_loss(self, use_nce=False):
         """Gets the output loss of the previous forward computation.
         """
-        return self._module.get_outputs(merge_multi_context=False)[-1]
+        if not use_nce:
+            return self._module.get_outputs(merge_multi_context=False)[-1]
+        else:
+            # [bptt*batch_size, num_label]
+            output = self._module.get_outputs(merge_multi_context=False)[-1]
+            pos = output[0][:, 0]
+            neg = 1-output[0][:, 1:]
+
+            # [bptt*batch_size]
+            loss = pos #+neg.sum(axis=-1)
+            #return loss/output[0].shape[1]
+            return [loss]
+
+    def get_outputs(self,merge_multi_context=False):
+        """Gets the output loss of the previous forward computation.
+        """
+        return self._module.get_outputs(merge_multi_context=False)
 
     def save_params(self, fname):
         """

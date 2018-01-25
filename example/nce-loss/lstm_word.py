@@ -36,11 +36,12 @@ if __name__ == '__main__':
                       help="use gpu")
     options, args = parser.parse_args()
 
-    batch_size = 1024
-    seq_len = 5
-    num_label = 6
+    batch_size = 32
+    seq_len = 35 
+    num_label = 10
     num_lstm_layer = 2
-    num_hidden = 100
+    num_hidden = 650
+    num_embed = 650
 
     init_c = [('l%d_init_c'%l, (batch_size, num_hidden)) for l in range(num_lstm_layer)]
     init_h = [('l%d_init_h'%l, (batch_size, num_hidden)) for l in range(num_lstm_layer)]
@@ -48,7 +49,7 @@ if __name__ == '__main__':
 
     data_train = DataIterLstm("./data/text8", batch_size, seq_len, num_label, init_states)
 
-    network = get_lstm_net(data_train.vocab_size, seq_len, num_lstm_layer, num_hidden)
+    network = get_lstm_net(data_train.vocab_size, seq_len, num_lstm_layer, num_hidden, num_embed)
 
     devs = mx.cpu()
     if options.gpu:

@@ -110,30 +110,32 @@ class NceLSTMAuc(mx.metric.EvalMetric):
         super(NceLSTMAuc, self).__init__('nce-lstm-auc')
 
     def update(self, labels, preds):
-        preds = np.array([x.asnumpy() for x in preds])
-        preds = preds.reshape((preds.shape[0] * preds.shape[1], preds.shape[2]))
-        label_weight = labels[1].asnumpy()
+        preds = np.array([x.asnumpy() for x in preds])    # [35,32,10]
+        preds = preds.reshape((preds.shape[0] * preds.shape[1], preds.shape[2])) # [bptt*batch_size, num_label]
+        label_weight = labels[1].asnumpy()   # [batch_size, bptt, num_label]
         label_weight = label_weight.transpose((1, 0, 2))
         label_weight = label_weight.reshape((preds.shape[0], preds.shape[1]))
 
-        tmp = []
-        for i in range(preds.shape[0]):
-            for j in range(preds.shape[1]):
-                tmp.append((label_weight[i][j], preds[i][j]))
-        tmp = sorted(tmp, key=itemgetter(1), reverse=True)
-        m = 0.0
-        n = 0.0
-        z = 0.0
-        k = 0
-        for a, _ in tmp:
-            if a > 0.5:
-                m += 1.0
-                z += len(tmp) - k
-            else:
-                n += 1.0
-            k += 1
-        z -= m * (m + 1.0) / 2.0
-        z /= m
-        z /= n
+        z = preds[:, 0].sum()
+        z /= preds.shape[0] 
+        #tmp = []
+        #for i in range(preds.shape[0]):
+        #    for j in range(preds.shape[1]):
+        #        tmp.append((label_weight[i][j], preds[i][j]))
+        #tmp = sorted(tmp, key=itemgetter(1), reverse=True)
+        #m = 0.0
+        #n = 0.0
+        #z = 0.0
+        #k = 0
+        #for a, _ in tmp:
+        #    if a > 0.5:
+        #        m += 1.0        # total number of postive sample
+        #        z += len(tmp) - k
+        #    else:
+        #        n += 1.0        # total number of negative sample
+        #    k += 1
+        #z -= m * (m + 1.0) / 2.0
+        #z /= m
+        #z /= n
         self.sum_metric += z
         self.num_inst += 1

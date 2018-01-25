@@ -54,7 +54,7 @@ def _lstm(num_hidden, indata, prev_state, param, seqidx, layeridx, dropout=0.):
     return LSTMState(c=next_c, h=next_h)
 
 
-def get_lstm_net(vocab_size, seq_len, num_lstm_layer, num_hidden):
+def get_lstm_net(vocab_size, seq_len, num_lstm_layer, num_hidden, num_embed):
     param_cells = []
     last_states = []
     for i in range(num_lstm_layer):
@@ -73,7 +73,7 @@ def get_lstm_net(vocab_size, seq_len, num_lstm_layer, num_hidden):
     label_embed_weight = mx.sym.Variable('label_embed_weight')
     data_embed = mx.sym.Embedding(data=data, input_dim=vocab_size,
                                   weight=embed_weight,
-                                  output_dim=100, name='data_embed')
+                                  output_dim=num_embed, name='data_embed')
     datavec = mx.sym.SliceChannel(data=data_embed,
                                   num_outputs=seq_len,
                                   squeeze_axis=True, name='data_slice')
@@ -100,5 +100,5 @@ def get_lstm_net(vocab_size, seq_len, num_lstm_layer, num_hidden):
                               label_weight=labelweightvec[seqidx],
                               embed_weight=label_embed_weight,
                               vocab_size=vocab_size,
-                              num_hidden=100))
+                              num_hidden=num_hidden))
     return mx.sym.Group(probs)

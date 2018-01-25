@@ -17,8 +17,12 @@
 
 import os
 import sys
+import pdb
+import math
 import gzip
 import json
+import time
+import random
 import mxnet as mx
 import numpy as np
 
@@ -27,6 +31,8 @@ class Dictionary(object):
         self.word2idx = {}
         self.idx2word = []
         self.word_count = []
+        self.add_word('<unk>')
+        self.add_word('<eos>')
 
     def add_word(self, word):
         if word not in self.word2idx:
@@ -52,6 +58,15 @@ class Corpus(object):
         self.valid = self.tokenize(path + 'valid.txt')
         self.test = self.tokenize(path + 'test.txt')
 
+        self.negative = []  
+        for idx,freq in enumerate(self.dictionary.word_count):
+            # skip <unk> and <eos>
+            if idx<2 or freq<5:
+                continue
+            v = int(math.pow(freq * 1.0, 0.75))
+            self.negative.extend([idx for _ in range(v)])
+
+
     def tokenize(self, path):
         """Tokenizes a text file."""
         assert os.path.exists(path)
@@ -76,12 +91,14 @@ class Corpus(object):
 
         return mx.nd.array(ids, dtype='int32')
 
+
 def batchify(data, batch_size):
     """Reshape data into (num_example, batch_size)"""
     nbatch = data.shape[0] // batch_size
     data = data[:nbatch * batch_size]
     data = data.reshape((batch_size, nbatch)).T
     return data
+
 
 class CorpusIter(mx.io.DataIter):
     "An iterator that returns the a batch of sequence each time"
@@ -119,3 +136,71 @@ class CorpusIter(mx.io.DataIter):
 
     def getlabel(self):
         return [self._next_label]
+
+
+class NceCorpusIter(CorpusIter):
+    def __init__(self, source, batch_size, bptt, num_label, negative):
+        super(NceCorpusIter, self).__init__(source, batch_size, bptt)
+        self.num_label = num_label
+        self.negative = negative
+        label_shape = (bptt, batch_size, num_label)
+        self.provide_label = [('label', label_shape, np.int32), ('label_weight', label_shape)]
+
+    def getlabel(self):
+        return [*self._next_label]
+
+    def iter_next(self):
+        i = self._index
+        if i+self._bptt > self._source.shape[0] - 1:
+            return False
+        self._index += self._bptt
+
+        # generate data
+        self._next_data = self._source[i:i+self._bptt]
+
+        # generate label
+        label_shape = (self.num_label, self._bptt, self.batch_size)
+        label = mx.nd.zeros(label_shape)
+
+        # [bptt,batch_size]
+        #label = np.zeros((self._bptt, self.batch_size, self.num_label))
+        #for i in range(0, self._bptt):
+        #    for j in range(0, self.batch_size):
+        #        v = self._source[i+1,j].asnumpy()
+        #        label[i,j,0] = v
+        #    
+        #        for k in range(1, self.num_label):
+        #            neg = v
+        #            while v==neg:
+        #                neg = self.negative[random.randint(0, len(self.negative) - 1)] 
+        #            label[i,j,k] = neg 
+        #label = mx.nd.array(label, dtype='int32')
+
+        # [bptt,batch_size]
+        tmp1 = self._source[i+1:i+1+self._bptt].astype(np.int32)
+        tmp1 = tmp1.expand_dims(0)
+
+        tmp2 = self.negative_sample((self.num_label-1, self._bptt, self.batch_size))
+        tmp2 = mx.nd.array(tmp2, dtype='int32')
+
+        label = mx.nd.concat(tmp1, tmp2, dim=0)
+        label = label.transpose((1,2,0))
+
+        # generate weight
+        label_weight = mx.nd.zeros(label_shape, dtype='float32')
+        label_weight[0,:,:] = 1.0
+        label_weight = label_weight.transpose((1,2,0))
+
+        self._next_label = (label, label_weight)
+        return True
+
+    def negative_sample(self, shape):
+        sz = 1
+        for v in shape:
+            sz *= v
+
+        res = np.zeros((sz,))
+        for i in range(0,sz):
+            res[i] = self.negative[random.randint(0, len(self.negative) - 1)] 
+
+        return res.reshape(shape)
