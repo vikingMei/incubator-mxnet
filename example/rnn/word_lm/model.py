@@ -125,8 +125,7 @@ def nce_loss(hidden, vocab_size, num_hidden, decode_weight, negdis, lnz):
     #lnz = mx.sym.Variable('lnz', shape=(1,))
 
     # [bptt*batch_size,num_label,num_hidden]
-    label_embed = mx.sym.Embedding(label, weight=decode_weight, input_dim=vocab_size,
-                             output_dim=num_hidden, name='decode_embed')
+    label_embed = mx.sym.Embedding(label, weight=decode_weight, input_dim=vocab_size, output_dim=num_hidden, name='decode_embed')
 
     negdis = mx.sym.Variable('negdis', shape=(vocab_size,1), dtype='float32', init=MyConstant(negdis.reshape((-1,1))) )
     negdis = mx.sym.BlockGrad(negdis)

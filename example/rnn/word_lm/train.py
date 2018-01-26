@@ -176,13 +176,14 @@ if __name__ == '__main__':
             total_loss += mx.nd.sum(outputs[0]).asscalar()
             speedometer_param = BatchEndParam(epoch=epoch, nbatch=nbatch,
                                               eval_metric=None, locals=locals())
-            nbatch += 1
             speedometer(speedometer_param)
             if nbatch % args.log_interval == 0 and nbatch > 0:
                 cur_loss = total_loss / bptt / batch_size / args.log_interval
                 logging.info('Iter[%d] Batch [%d]\tLoss:  %.7f,\tPerplexity:\t%.7f' % \
-                             (epoch, nbatch, cur_loss, math.exp(cur_loss)))
+                             (epoch, nbatch, cur_loss, cur_loss))
+                             #(epoch, nbatch, cur_loss, math.exp(cur_loss)))
                 total_loss = 0.0
+            nbatch += 1
 
 
         # validation
@@ -192,7 +193,7 @@ if __name__ == '__main__':
             # test
             test_loss = evaluatefunc(module, test_data, epoch, 'Test', bptt, batch_size)
         else:
-            optimizer.lr *= 0.25
+            optimizer.lr *= 0.5
         train_data.reset()
         module.save_checkpoint(args.output + '/model', epoch)
     logging.info("Training completed. ")
