@@ -1,0 +1,4845 @@
+# extended LDIF
+#
+# LDAPv3
+# base <dc=cm,dc=cluster> (default) with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# cm.cluster
+dn: dc=cm,dc=cluster
+objectClass: organization
+objectClass: dcObject
+dc: cm
+o: CM Cluster
+
+# root, cm.cluster
+dn: cn=root,dc=cm,dc=cluster
+objectClass: organizationalRole
+cn: root
+
+# Group, cm.cluster
+dn: ou=Group,dc=cm,dc=cluster
+objectClass: organizationalUnit
+objectClass: top
+ou: Group
+
+# aispeech, cm.cluster
+dn: ou=aispeech,dc=cm,dc=cluster
+objectClass: top
+objectClass: organizationalUnit
+ou: aispeech
+
+# user, aispeech, cm.cluster
+dn: ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: organizationalUnit
+ou: aispeech
+ou: user
+
+# sjtu, cm.cluster
+dn: ou=sjtu,dc=cm,dc=cluster
+objectClass: top
+objectClass: organizationalUnit
+ou: sjtu
+
+# user, sjtu, cm.cluster
+dn: ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: organizationalUnit
+ou: sjtu
+ou: user
+
+# cmsupport, cm.cluster
+dn: uid=cmsupport,dc=cm,dc=cluster
+objectClass: shadowAccount
+objectClass: posixAccount
+objectClass: inetOrgPerson
+cn: cmsupport
+gidNumber: 1000
+homeDirectory: /home/cmsupport
+sn: cmsupport
+uid: cmsupport
+uidNumber: 1000
+loginShell: /bin/bash
+shadowLastChange: 17402
+shadowMax: 99999
+shadowWarning: 7
+
+# cmsupport, Group, cm.cluster
+dn: cn=cmsupport,ou=Group,dc=cm,dc=cluster
+objectClass: top
+objectClass: posixGroup
+cn: cmsupport
+gidNumber: 1000
+
+# readonlyroot, cm.cluster
+dn: cn=readonlyroot,dc=cm,dc=cluster
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: readonlyroot
+
+# rogroup, cm.cluster
+dn: cn=rogroup,dc=cm,dc=cluster
+objectClass: groupOfNames
+cn: readonly users
+cn: rogroup
+member: cn=readonlyroot,dc=cm,dc=cluster
+
+# wxm71, user, aispeech, cm.cluster
+dn: uid=wxm71,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wxm71
+gidNumber: 20000
+homeDirectory: /home/aispeech/wxm71
+sn: wxm71
+uid: wxm71
+uidNumber: 1014
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# airesearch, cm.cluster
+dn: ou=airesearch,dc=cm,dc=cluster
+ou: airesearch
+objectClass: organizationalUnit
+objectClass: top
+
+# user, airesearch, cm.cluster
+dn: ou=user,ou=airesearch,dc=cm,dc=cluster
+ou: airesearch
+ou: user
+objectClass: organizationalUnit
+
+# fx310, user, aispeech, cm.cluster
+dn: uid=fx310,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: fx310
+gidNumber: 20000
+homeDirectory: /home/aispeech/fx310
+sn: fx310
+uid: fx310
+uidNumber: 1010
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ky219, user, sjtu, cm.cluster
+dn: uid=ky219,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ky219
+gidNumber: 10000
+homeDirectory: /home/sjtu/ky219
+sn: ky219
+uid: ky219
+uidNumber: 1005
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# lyy93, user, sjtu, cm.cluster
+dn: uid=lyy93,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: lyy93
+gidNumber: 0
+homeDirectory: /home/sjtu/lyy93
+sn: lyy93
+uid: lyy93
+uidNumber: 0
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# rhs17, user, sjtu, cm.cluster
+dn: uid=rhs17,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: rhs17
+gidNumber: 10000
+homeDirectory: /home/sjtu/rhs17
+sn: rhs17
+uid: rhs17
+uidNumber: 1006
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wd007, user, sjtu, cm.cluster
+dn: uid=wd007,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wd007
+gidNumber: 10000
+homeDirectory: /home/sjtu/wd007
+sn: wd007
+uid: wd007
+uidNumber: 1008
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xgl81, user, aispeech, cm.cluster
+dn: uid=xgl81,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xgl81
+gidNumber: 20000
+homeDirectory: /home/aispeech/xgl81
+sn: xgl81
+uid: xgl81
+uidNumber: 1012
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yf624, user, sjtu, cm.cluster
+dn: uid=yf624,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yf624
+gidNumber: 10000
+homeDirectory: /home/sjtu/yf624
+sn: yf624
+uid: yf624
+uidNumber: 1009
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yl710, user, sjtu, cm.cluster
+dn: uid=yl710,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yl710
+gidNumber: 10000
+homeDirectory: /home/sjtu/yl710
+sn: yl710
+uid: yl710
+uidNumber: 1003
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wdz50, user, aispeech, cm.cluster
+dn: uid=wdz50,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wdz50
+gidNumber: 20000
+homeDirectory: /home/aispeech/wdz50
+sn: wdz50
+uid: wdz50
+uidNumber: 1016
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xfy99, user, aispeech, cm.cluster
+dn: uid=xfy99,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xfy99
+gidNumber: 20000
+homeDirectory: /home/aispeech/xfy99
+sn: xfy99
+uid: xfy99
+uidNumber: 1018
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xx205, user, sjtu, cm.cluster
+dn: uid=xx205,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xx205
+gidNumber: 10000
+homeDirectory: /home/sjtu/xx205
+sn: xx205
+uid: xx205
+uidNumber: 1019
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# gcx00, user, sjtu, cm.cluster
+dn: uid=gcx00,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: gcx00
+gidNumber: 10000
+homeDirectory: /home/sjtu/gcx00
+sn: gcx00
+uid: gcx00
+uidNumber: 1020
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yl618, user, sjtu, cm.cluster
+dn: uid=yl618,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yl618
+gidNumber: 10000
+homeDirectory: /home/sjtu/yl618
+sn: yl618
+uid: yl618
+uidNumber: 1021
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# tt123, user, sjtu, cm.cluster
+dn: uid=tt123,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: tt123
+gidNumber: 10000
+homeDirectory: /home/sjtu/tt123
+sn: tt123
+uid: tt123
+uidNumber: 1022
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yby23, user, sjtu, cm.cluster
+dn: uid=yby23,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yby23
+gidNumber: 10000
+homeDirectory: /home/sjtu/yby23
+sn: yby23
+uid: yby23
+uidNumber: 1023
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ymq84, user, sjtu, cm.cluster
+dn: uid=ymq84,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ymq84
+gidNumber: 10000
+homeDirectory: /home/sjtu/ymq84
+sn: ymq84
+uid: ymq84
+uidNumber: 10030
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# pcz88, user, aispeech, cm.cluster
+dn: uid=pcz88,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: pcz88
+gidNumber: 20000
+homeDirectory: /home/aispeech/pcz88
+sn: pcz88
+uid: pcz88
+uidNumber: 1024
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# lc918, user, sjtu, cm.cluster
+dn: uid=lc918,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: lc918
+gidNumber: 10000
+homeDirectory: /home/sjtu/lc918
+sn: lc918
+uid: lc918
+uidNumber: 56227
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# sm008, user, sjtu, cm.cluster
+dn: uid=sm008,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: sm008
+gidNumber: 10000
+homeDirectory: /home/sjtu/sm008
+sn: sm008
+uid: sm008
+uidNumber: 10008
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# sz001, user, aispeech, cm.cluster
+dn: uid=sz001,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: sz001
+gidNumber: 20000
+homeDirectory: /home/aispeech/sz001
+sn: sz001
+uid: sz001
+uidNumber: 1025
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# lz123, user, aispeech, cm.cluster
+dn: uid=lz123,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: lz123
+gidNumber: 20000
+homeDirectory: /home/aispeech/lz123
+sn: lz123
+uid: lz123
+uidNumber: 1026
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# sz128, user, sjtu, cm.cluster
+dn: uid=sz128,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: sz128
+gidNumber: 10000
+homeDirectory: /home/sjtu/sz128
+sn: sz128
+uid: sz128
+uidNumber: 2118
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# txh18, user, sjtu, cm.cluster
+dn: uid=txh18,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: txh18
+gidNumber: 10000
+homeDirectory: /home/sjtu/txh18
+sn: txh18
+uid: txh18
+uidNumber: 100889
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wl109, user, sjtu, cm.cluster
+dn: uid=wl109,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wl109
+gidNumber: 10000
+homeDirectory: /home/sjtu/wl109
+sn: wl109
+uid: wl109
+uidNumber: 1008109
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# abz16, user, sjtu, cm.cluster
+dn: uid=abz16,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: abz16
+gidNumber: 10000
+homeDirectory: /home/sjtu/abz16
+sn: abz16
+uid: abz16
+uidNumber: 100816
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# tf371, user, sjtu, cm.cluster
+dn: uid=tf371,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: tf371
+gidNumber: 10000
+homeDirectory: /home/sjtu/tf371
+sn: tf371
+uid: tf371
+uidNumber: 1055
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hx055, user, aispeech, cm.cluster
+dn: uid=hx055,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hx055
+gidNumber: 20000
+homeDirectory: /home/aispeech/hx055
+sn: hx055
+uid: hx055
+uidNumber: 1001
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# bc299, user, sjtu, cm.cluster
+dn: uid=bc299,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: bc299
+gidNumber: 10000
+homeDirectory: /home/sjtu/bc299
+sn: bc299
+uid: bc299
+uidNumber: 1008299
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zq425, user, aispeech, cm.cluster
+dn: uid=zq425,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zq425
+gidNumber: 20000
+homeDirectory: /home/aispeech/zq425
+sn: zq425
+uid: zq425
+uidNumber: 1002
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zl130, user, sjtu, cm.cluster
+dn: uid=zl130,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zl130
+gidNumber: 10000
+homeDirectory: /home/sjtu/zl130
+sn: zl130
+uid: zl130
+uidNumber: 1008130
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ks001, user, sjtu, cm.cluster
+dn: uid=ks001,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ks001
+gidNumber: 10000
+homeDirectory: /home/sjtu/ks001
+sn: ks001
+uid: ks001
+uidNumber: 10010
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# nxc04, user, sjtu, cm.cluster
+dn: uid=nxc04,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: nxc04
+gidNumber: 10000
+homeDirectory: /home/sjtu/nxc04
+sn: nxc04
+uid: nxc04
+uidNumber: 10011
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# bj123, user, aispeech, cm.cluster
+dn: uid=bj123,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: bj123
+gidNumber: 20000
+homeDirectory: /home/aispeech/bj123
+sn: bj123
+uid: bj123
+uidNumber: 10012
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yhh86, user, aispeech, cm.cluster
+dn: uid=yhh86,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yhh86
+gidNumber: 20000
+homeDirectory: /home/aispeech/yhh86
+sn: yhh86
+uid: yhh86
+uidNumber: 1027
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jlx99, user, aispeech, cm.cluster
+dn: uid=jlx99,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jlx99
+gidNumber: 20000
+homeDirectory: /home/aispeech/jlx99
+sn: jlx99
+uid: jlx99
+uidNumber: 1029
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zht16, user, aispeech, cm.cluster
+dn: uid=zht16,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zht16
+gidNumber: 20000
+homeDirectory: /home/aispeech/zht16
+sn: zht16
+uid: zht16
+uidNumber: 1030
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hyc55, user, aispeech, cm.cluster
+dn: uid=hyc55,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hyc55
+gidNumber: 20000
+homeDirectory: /home/aispeech/hyc55
+sn: hyc55
+uid: hyc55
+uidNumber: 1031
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xmz15, user, aispeech, cm.cluster
+dn: uid=xmz15,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xmz15
+gidNumber: 20000
+homeDirectory: /home/aispeech/xmz15
+sn: xmz15
+uid: xmz15
+uidNumber: 1032
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# dz489, user, aispeech, cm.cluster
+dn: uid=dz489,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: dz489
+gidNumber: 10009
+homeDirectory: /home/aispeech/dz489
+sn: dz489
+uid: dz489
+uidNumber: 1008101
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jwn27, user, sjtu, cm.cluster
+dn: uid=jwn27,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jwn27
+gidNumber: 10000
+homeDirectory: /home/sjtu/jwn27
+sn: jwn27
+uid: jwn27
+uidNumber: 100812
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yhh12, user, aispeech, cm.cluster
+dn: uid=yhh12,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yhh12
+gidNumber: 20000
+homeDirectory: /home/aispeech/yhh12
+sn: yhh12
+uid: yhh12
+uidNumber: 1033
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xg127, user, aispeech, cm.cluster
+dn: uid=xg127,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xg127
+gidNumber: 20000
+homeDirectory: /home/aispeech/xg127
+sn: xg127
+uid: xg127
+uidNumber: 1034
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# fx522, user, aispeech, cm.cluster
+dn: uid=fx522,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: fx522
+gidNumber: 20000
+homeDirectory: /home/aispeech/fx522
+sn: fx522
+uid: fx522
+uidNumber: 1035
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zhc00, user, sjtu, cm.cluster
+dn: uid=zhc00,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zhc00
+gidNumber: 10000
+sn: zhc00
+uid: zhc00
+uidNumber: 100800980
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+homeDirectory: /home/aispeech/zhc00
+
+# mxb01, user, sjtu, cm.cluster
+dn: uid=mxb01,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: mxb01
+gidNumber: 10000
+homeDirectory: /home/sjtu/mxb01
+sn: mxb01
+uid: mxb01
+uidNumber: 1008872437
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wqx17, user, aispeech, cm.cluster
+dn: uid=wqx17,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wqx17
+gidNumber: 20000
+homeDirectory: /home/aispeech/wqx17
+sn: wqx17
+uid: wqx17
+uidNumber: 1036
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hbldev, user, aispeech, cm.cluster
+dn: uid=hbldev,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hbldev
+gidNumber: 20000
+homeDirectory: /home/aispeech/hbldev
+sn: hbldev
+uid: hbldev
+uidNumber: 1037
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ymz09, user, sjtu, cm.cluster
+dn: uid=ymz09,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ymz09
+gidNumber: 10000
+homeDirectory: /home/sjtu/ymz09
+sn: ymz09
+uid: ymz09
+uidNumber: 10080909
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# mobdev, user, aispeech, cm.cluster
+dn: uid=mobdev,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: mobdev
+gidNumber: 20000
+homeDirectory: /home/aispeech/mobdev
+sn: mobdev
+uid: mobdev
+uidNumber: 1038
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ww714, user, aispeech, cm.cluster
+dn: uid=ww714,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ww714
+gidNumber: 20000
+homeDirectory: /home/aispeech/ww714
+sn: ww714
+uid: ww714
+uidNumber: 1039
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yf028, user, aispeech, cm.cluster
+dn: uid=yf028,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yf028
+gidNumber: 20000
+homeDirectory: /home/aispeech/yf028
+sn: yf028
+uid: yf028
+uidNumber: 1040
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# gxc94, user, aispeech, cm.cluster
+dn: uid=gxc94,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: gxc94
+gidNumber: 20000
+homeDirectory: /home/aispeech/gxc94
+sn: gxc94
+uid: gxc94
+uidNumber: 1041
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ql826, user, aispeech, cm.cluster
+dn: uid=ql826,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ql826
+gidNumber: 20000
+homeDirectory: /home/aispeech/ql826
+sn: ql826
+uid: ql826
+uidNumber: 1042
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# dl915, user, aispeech, cm.cluster
+dn: uid=dl915,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: dl915
+gidNumber: 20000
+homeDirectory: /home/aispeech/dl915
+sn: dl915
+uid: dl915
+uidNumber: 1043
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wgj99, user, sjtu, cm.cluster
+dn: uid=wgj99,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wgj99
+gidNumber: 10000
+homeDirectory: /home/sjtu/wgj99
+sn: wgj99
+uid: wgj99
+uidNumber: 18989
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# mks18, user, aispeech, cm.cluster
+dn: uid=mks18,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: mks18
+gidNumber: 20000
+homeDirectory: /home/aispeech/mks18
+sn: mks18
+uid: mks18
+uidNumber: 1044
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xdl80, user, sjtu, cm.cluster
+dn: uid=xdl80,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xdl80
+gidNumber: 10000
+homeDirectory: /home/sjtu/xdl80
+sn: xdl80
+uid: xdl80
+uidNumber: 1893221
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# sf116, user, aispeech, cm.cluster
+dn: uid=sf116,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: sf116
+gidNumber: 20000
+homeDirectory: /home/aispeech/sf116
+sn: sf116
+uid: sf116
+uidNumber: 1045
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hedi7, user, sjtu, cm.cluster
+dn: uid=hedi7,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hedi7
+gidNumber: 10000
+homeDirectory: /home/sjtu/hedi7
+sn: hedi7
+uid: hedi7
+uidNumber: 10070909
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zl113, user, aispeech, cm.cluster
+dn: uid=zl113,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zl113
+gidNumber: 20000
+homeDirectory: /home/aispeech/zl113
+sn: zl113
+uid: zl113
+uidNumber: 1046
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hg018, user, sjtu, cm.cluster
+dn: uid=hg018,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hg018
+gidNumber: 10000
+homeDirectory: /home/sjtu/hg018
+sn: hg018
+uid: hg018
+uidNumber: 1004018
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xkc09, user, sjtu, cm.cluster
+dn: uid=xkc09,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xkc09
+gidNumber: 10000
+homeDirectory: /home/sjtu/xkc09
+sn: xkc09
+uid: xkc09
+uidNumber: 1018209
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# dc307, user, sjtu, cm.cluster
+dn: uid=dc307,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: dc307
+gidNumber: 10000
+homeDirectory: /home/sjtu/dc307
+sn: dc307
+uid: dc307
+uidNumber: 1008307
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# mfy43, user, sjtu, cm.cluster
+dn: uid=mfy43,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: mfy43
+gidNumber: 10000
+homeDirectory: /home/sjtu/mfy43
+sn: mfy43
+uid: mfy43
+uidNumber: 10084343
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jcx00, user, sjtu, cm.cluster
+dn: uid=jcx00,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jcx00
+gidNumber: 10000
+homeDirectory: /home/sjtu/jcx00
+sn: jcx00
+uid: jcx00
+uidNumber: 10080000
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# cj222, user, aispeech, cm.cluster
+dn: uid=cj222,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: cj222
+gidNumber: 20000
+homeDirectory: /home/aispeech/cj222
+sn: cj222
+uid: cj222
+uidNumber: 1048
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# cc001, user, sjtu, cm.cluster
+dn: uid=cc001,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: cc001
+gidNumber: 10000
+homeDirectory: /home/sjtu/cc001
+sn: cc001
+uid: cc001
+uidNumber: 10081010
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yw619, user, sjtu, cm.cluster
+dn: uid=yw619,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yw619
+gidNumber: 10000
+homeDirectory: /home/sjtu/yw619
+sn: yw619
+uid: yw619
+uidNumber: 1008619
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# qzx02, user, sjtu, cm.cluster
+dn: uid=qzx02,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: qzx02
+gidNumber: 10000
+homeDirectory: /home/sjtu/qzx02
+sn: qzx02
+uid: qzx02
+uidNumber: 10080202
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ql901, user, sjtu, cm.cluster
+dn: uid=ql901,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ql901
+gidNumber: 10000
+homeDirectory: /home/sjtu/ql901
+sn: ql901
+uid: ql901
+uidNumber: 10080901
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# kw711, user, sjtu, cm.cluster
+dn: uid=kw711,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: kw711
+gidNumber: 10000
+homeDirectory: /home/sjtu/kw711
+sn: kw711
+uid: kw711
+uidNumber: 1008711
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yhj30, user, aispeech, cm.cluster
+dn: uid=yhj30,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yhj30
+gidNumber: 20000
+homeDirectory: /home/aispeech/yhj30
+sn: yhj30
+uid: yhj30
+uidNumber: 1049
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jfg09, user, sjtu, cm.cluster
+dn: uid=jfg09,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jfg09
+gidNumber: 10000
+homeDirectory: /home/sjtu/jfg09
+sn: jfg09
+uid: jfg09
+uidNumber: 1008709
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# sqy30, user, sjtu, cm.cluster
+dn: uid=sqy30,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: sqy30
+gidNumber: 10000
+homeDirectory: /home/sjtu/sqy30
+sn: sqy30
+uid: sqy30
+uidNumber: 1008730
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ych14, user, sjtu, cm.cluster
+dn: uid=ych14,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ych14
+gidNumber: 10000
+homeDirectory: /home/sjtu/ych14
+sn: ych14
+uid: ych14
+uidNumber: 1008714
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xl526, user, sjtu, cm.cluster
+dn: uid=xl526,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xl526
+gidNumber: 10000
+homeDirectory: /home/sjtu/xl526
+sn: xl526
+uid: xl526
+uidNumber: 10087526
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# tx078, user, sjtu, cm.cluster
+dn: uid=tx078,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: tx078
+gidNumber: 10000
+sn: tx078
+uid: tx078
+uidNumber: 10087078
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+homeDirectory: /home/aispeech/tx078
+
+# lc528, user, aispeech, cm.cluster
+dn: uid=lc528,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: lc528
+gidNumber: 20000
+homeDirectory: /home/aispeech/lc528
+sn: lc528
+uid: lc528
+uidNumber: 1050
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ltg06, user, sjtu, cm.cluster
+dn: uid=ltg06,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ltg06
+gidNumber: 10000
+homeDirectory: /home/sjtu/ltg06
+sn: ltg06
+uid: ltg06
+uidNumber: 1008206
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# sw121, user, sjtu, cm.cluster
+dn: uid=sw121,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: sw121
+gidNumber: 10000
+homeDirectory: /home/sjtu/sw121
+sn: sw121
+uid: sw121
+uidNumber: 1008121
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jhl00, user, sjtu, cm.cluster
+dn: uid=jhl00,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jhl00
+gidNumber: 10000
+homeDirectory: /home/sjtu/jhl00
+sn: jhl00
+uid: jhl00
+uidNumber: 1008091600
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xyw00, user, sjtu, cm.cluster
+dn: uid=xyw00,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xyw00
+gidNumber: 10000
+homeDirectory: /home/sjtu/xyw00
+sn: xyw00
+uid: xyw00
+uidNumber: 1008102100
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# qyw16, user, aispeech, cm.cluster
+dn: uid=qyw16,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: qyw16
+gidNumber: 20000
+homeDirectory: /home/aispeech/qyw16
+sn: qyw16
+uid: qyw16
+uidNumber: 1052
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jyw06, user, aispeech, cm.cluster
+dn: uid=jyw06,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jyw06
+gidNumber: 20000
+homeDirectory: /home/aispeech/jyw06
+sn: jyw06
+uid: jyw06
+uidNumber: 1053
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# rnc00, user, sjtu, cm.cluster
+dn: uid=rnc00,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: rnc00
+gidNumber: 10000
+homeDirectory: /home/sjtu/rnc00
+sn: rnc00
+uid: rnc00
+uidNumber: 1008111500
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wd929, user, sjtu, cm.cluster
+dn: uid=wd929,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wd929
+gidNumber: 10000
+homeDirectory: /home/sjtu/wd929
+sn: wd929
+uid: wd929
+uidNumber: 1008120129
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hbz25, user, aispeech, cm.cluster
+dn: uid=hbz25,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hbz25
+gidNumber: 20000
+homeDirectory: /home/aispeech/hbz25
+sn: hbz25
+uid: hbz25
+uidNumber: 1054
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# tzh18, user, aispeech, cm.cluster
+dn: uid=tzh18,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: tzh18
+gidNumber: 20000
+homeDirectory: /home/aispeech/tzh18
+sn: tzh18
+uid: tzh18
+uidNumber: 1056
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wwy74, user, aispeech, cm.cluster
+dn: uid=wwy74,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wwy74
+gidNumber: 20000
+homeDirectory: /home/aispeech/wwy74
+sn: wwy74
+uid: wwy74
+uidNumber: 1028
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yz931, user, aispeech, cm.cluster
+dn: uid=yz931,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yz931
+gidNumber: 20000
+homeDirectory: /home/aispeech/yz931
+sn: yz931
+uid: yz931
+uidNumber: 1057
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# qys30, user, sjtu, cm.cluster
+dn: uid=qys30,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: qys30
+gidNumber: 10000
+homeDirectory: /home/sjtu/qys30
+sn: qys30
+uid: qys30
+uidNumber: 1008030830
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# lhz99, user, sjtu, cm.cluster
+dn: uid=lhz99,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: lhz99
+gidNumber: 10000
+homeDirectory: /home/sjtu/lhz99
+sn: lhz99
+uid: lhz99
+uidNumber: 1008032499
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# plw29, user, aispeech, cm.cluster
+dn: uid=plw29,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: plw29
+gidNumber: 20000
+homeDirectory: /home/aispeech/plw29
+sn: plw29
+uid: plw29
+uidNumber: 10102929
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# qqy02, user, sjtu, cm.cluster
+dn: uid=qqy02,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: qqy02
+gidNumber: 10000
+homeDirectory: /home/sjtu/qqy02
+sn: qqy02
+uid: qqy02
+uidNumber: 1008033002
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# fp421, user, aispeech, cm.cluster
+dn: uid=fp421,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: fp421
+gidNumber: 20000
+homeDirectory: /home/aispeech/fp421
+sn: fp421
+uid: fp421
+uidNumber: 101029421
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jfx25, user, aispeech, cm.cluster
+dn: uid=jfx25,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jfx25
+gidNumber: 20000
+homeDirectory: /home/aispeech/jfx25
+sn: jfx25
+uid: jfx25
+uidNumber: 10102525
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# kys10, user, sjtu, cm.cluster
+dn: uid=kys10,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: kys10
+gidNumber: 10000
+homeDirectory: /home/sjtu/kys10
+sn: kys10
+uid: kys10
+uidNumber: 1008070810
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# bz193, user, aispeech, cm.cluster
+dn: uid=bz193,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: bz193
+gidNumber: 20000
+homeDirectory: /home/aispeech/bz193
+sn: bz193
+uid: bz193
+uidNumber: 56229
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ydt86, user, aispeech, cm.cluster
+dn: uid=ydt86,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ydt86
+gidNumber: 20000
+homeDirectory: /home/aispeech/ydt86
+sn: ydt86
+uid: ydt86
+uidNumber: 10148274
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jjz43, user, sjtu, cm.cluster
+dn: uid=jjz43,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jjz43
+gidNumber: 10000
+homeDirectory: /home/sjtu/jjz43
+sn: jjz43
+uid: jjz43
+uidNumber: 1004300
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ybm29, user, aispeech, cm.cluster
+dn: uid=ybm29,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ybm29
+gidNumber: 20000
+homeDirectory: /home/aispeech/ybm29
+sn: ybm29
+uid: ybm29
+uidNumber: 43621688
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jyl53, user, aispeech, cm.cluster
+dn: uid=jyl53,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jyl53
+gidNumber: 20000
+homeDirectory: /home/aispeech/jyl53
+sn: jyl53
+uid: jyl53
+uidNumber: 81423732
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xys28, user, aispeech, cm.cluster
+dn: uid=xys28,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xys28
+gidNumber: 20000
+homeDirectory: /home/aispeech/xys28
+sn: xys28
+uid: xys28
+uidNumber: 90416549
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ppz97, user, aispeech, cm.cluster
+dn: uid=ppz97,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ppz97
+gidNumber: 20000
+homeDirectory: /home/aispeech/ppz97
+sn: ppz97
+uid: ppz97
+uidNumber: 5622912
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yjm39, user, aispeech, cm.cluster
+dn: uid=yjm39,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yjm39
+gidNumber: 20000
+homeDirectory: /home/aispeech/yjm39
+sn: yjm39
+uid: yjm39
+uidNumber: 563328
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hfz95, user, sjtu, cm.cluster
+dn: uid=hfz95,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hfz95
+gidNumber: 10000
+homeDirectory: /home/sjtu/hfz95
+sn: hfz95
+uid: hfz95
+uidNumber: 1008070895
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# htl11, user, sjtu, cm.cluster
+dn: uid=htl11,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: htl11
+gidNumber: 10000
+homeDirectory: /home/sjtu/htl11
+sn: htl11
+uid: htl11
+uidNumber: 1008070811
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# rzy01, user, sjtu, cm.cluster
+dn: uid=rzy01,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: rzy01
+gidNumber: 10000
+homeDirectory: /home/sjtu/rzy01
+sn: rzy01
+uid: rzy01
+uidNumber: 1008070801
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yz049, user, sjtu, cm.cluster
+dn: uid=yz049,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yz049
+gidNumber: 10000
+homeDirectory: /home/sjtu/yz049
+sn: yz049
+uid: yz049
+uidNumber: 1008070849
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zhy96, user, sjtu, cm.cluster
+dn: uid=zhy96,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zhy96
+gidNumber: 10000
+homeDirectory: /home/sjtu/zhy96
+sn: zhy96
+uid: zhy96
+uidNumber: 1008070896
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# pyg65, user, aispeech, cm.cluster
+dn: uid=pyg65,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: pyg65
+gidNumber: 20000
+homeDirectory: /home/aispeech/pyg65
+sn: pyg65
+uid: pyg65
+uidNumber: 55212537
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yzl80, user, aispeech, cm.cluster
+dn: uid=yzl80,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yzl80
+gidNumber: 20000
+homeDirectory: /home/aispeech/yzl80
+sn: yzl80
+uid: yzl80
+uidNumber: 88570582
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yz057, user, aispeech, cm.cluster
+dn: uid=yz057,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yz057
+gidNumber: 20000
+homeDirectory: /home/aispeech/yz057
+sn: yz057
+uid: yz057
+uidNumber: 57760905
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# syc38, user, aispeech, cm.cluster
+dn: uid=syc38,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: syc38
+gidNumber: 20000
+homeDirectory: /home/aispeech/syc38
+sn: syc38
+uid: syc38
+uidNumber: 52139719
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# lz963, user, aispeech, cm.cluster
+dn: uid=lz963,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: lz963
+gidNumber: 20000
+homeDirectory: /home/aispeech/lz963
+sn: lz963
+uid: lz963
+uidNumber: 86291869
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yfc19, user, aispeech, cm.cluster
+dn: uid=yfc19,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yfc19
+gidNumber: 20000
+homeDirectory: /home/aispeech/yfc19
+sn: yfc19
+uid: yfc19
+uidNumber: 15696613
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hl761, user, sjtu, cm.cluster
+dn: uid=hl761,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hl761
+gidNumber: 10000
+homeDirectory: /home/sjtu/hl761
+sn: hl761
+uid: hl761
+uidNumber: 1008081061
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xtg25, user, aispeech, cm.cluster
+dn: uid=xtg25,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xtg25
+gidNumber: 20000
+homeDirectory: /home/aispeech/xtg25
+sn: xtg25
+uid: xtg25
+uidNumber: 82315208
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yfc07, user, sjtu, cm.cluster
+dn: uid=yfc07,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yfc07
+gidNumber: 10000
+homeDirectory: /home/sjtu/yfc07
+sn: yfc07
+uid: yfc07
+uidNumber: 1008081107
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zjz17, user, sjtu, cm.cluster
+dn: uid=zjz17,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zjz17
+gidNumber: 10000
+homeDirectory: /home/sjtu/zjz17
+sn: zjz17
+uid: zjz17
+uidNumber: 1008081317
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zqz12, user, sjtu, cm.cluster
+dn: uid=zqz12,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zqz12
+gidNumber: 10000
+homeDirectory: /home/sjtu/zqz12
+sn: zqz12
+uid: zqz12
+uidNumber: 1008081612
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jpj44, user, aispeech, cm.cluster
+dn: uid=jpj44,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jpj44
+gidNumber: 20000
+homeDirectory: /home/aispeech/jpj44
+sn: jpj44
+uid: jpj44
+uidNumber: 89164532
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wj145, user, aispeech, cm.cluster
+dn: uid=wj145,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wj145
+gidNumber: 20000
+homeDirectory: /home/aispeech/wj145
+sn: wj145
+uid: wj145
+uidNumber: 96825283
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# bz879, user, aispeech, cm.cluster
+dn: uid=bz879,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: bz879
+gidNumber: 20000
+homeDirectory: /home/aispeech/bz879
+sn: bz879
+uid: bz879
+uidNumber: 38676794
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xzw31, user, aispeech, cm.cluster
+dn: uid=xzw31,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xzw31
+gidNumber: 20000
+homeDirectory: /home/aispeech/xzw31
+sn: xzw31
+uid: xzw31
+uidNumber: 28597708
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# kz989, user, aispeech, cm.cluster
+dn: uid=kz989,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: kz989
+gidNumber: 20000
+homeDirectory: /home/aispeech/kz989
+sn: kz989
+uid: kz989
+uidNumber: 27836824
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# dz828, user, aispeech, cm.cluster
+dn: uid=dz828,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: dz828
+gidNumber: 20000
+homeDirectory: /home/aispeech/dz828
+sn: dz828
+uid: dz828
+uidNumber: 88338389
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# fsc87, user, aispeech, cm.cluster
+dn: uid=fsc87,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: fsc87
+gidNumber: 20000
+homeDirectory: /home/aispeech/fsc87
+sn: fsc87
+uid: fsc87
+uidNumber: 70519043
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zc825, user, sjtu, cm.cluster
+dn: uid=zc825,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zc825
+gidNumber: 10000
+homeDirectory: /home/sjtu/zc825
+sn: zc825
+uid: zc825
+uidNumber: 1008101725
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hh112, user, sjtu, cm.cluster
+dn: uid=hh112,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hh112
+gidNumber: 10000
+homeDirectory: /home/sjtu/hh112
+sn: hh112
+uid: hh112
+uidNumber: 1008101912
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# pz853, user, aispeech, cm.cluster
+dn: uid=pz853,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: pz853
+gidNumber: 20000
+homeDirectory: /home/aispeech/pz853
+sn: pz853
+uid: pz853
+uidNumber: 87937142
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xwj11, user, sjtu, cm.cluster
+dn: uid=xwj11,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xwj11
+gidNumber: 10000
+homeDirectory: /home/sjtu/xwj11
+sn: xwj11
+uid: xwj11
+uidNumber: 1008111111
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zc852, user, aispeech, cm.cluster
+dn: uid=zc852,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zc852
+gidNumber: 20000
+homeDirectory: /home/aispeech/zc852
+sn: zc852
+uid: zc852
+uidNumber: 8145928
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# nx951, user, aispeech, cm.cluster
+dn: uid=nx951,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: nx951
+gidNumber: 20000
+homeDirectory: /home/aispeech/nx951
+sn: nx951
+uid: nx951
+uidNumber: 32517063
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yj912, user, aispeech, cm.cluster
+dn: uid=yj912,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yj912
+gidNumber: 20000
+homeDirectory: /home/aispeech/yj912
+sn: yj912
+uid: yj912
+uidNumber: 94560949
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yxy34, user, sjtu, cm.cluster
+dn: uid=yxy34,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yxy34
+gidNumber: 10000
+homeDirectory: /home/sjtu/yxy34
+sn: yxy34
+uid: yxy34
+uidNumber: 1008122334
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hbn13, user, sjtu, cm.cluster
+dn: uid=hbn13,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hbn13
+gidNumber: 10000
+homeDirectory: /home/sjtu/hbn13
+sn: hbn13
+uid: hbn13
+uidNumber: 1008122513
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# qly18, user, aispeech, cm.cluster
+dn: uid=qly18,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: qly18
+gidNumber: 20000
+homeDirectory: /home/aispeech/qly18
+sn: qly18
+uid: qly18
+uidNumber: 67411082
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# kc430, user, aispeech, cm.cluster
+dn: uid=kc430,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: kc430
+sn: kc430
+uid: kc430
+uidNumber: 68220028
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+gidNumber: 10000
+homeDirectory: /home/sjtu/kc430
+
+# kun.jiang, user, aispeech, cm.cluster
+dn: uid=kun.jiang,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: kun.jiang
+gidNumber: 20000
+homeDirectory: /home/aispeech/kun.jiang
+sn: kun.jiang
+uid: kun.jiang
+uidNumber: 93410566
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# chao.zhang, user, aispeech, cm.cluster
+dn: uid=chao.zhang,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: chao.zhang
+gidNumber: 20000
+homeDirectory: /home/aispeech/chao.zhang
+sn: chao.zhang
+uid: chao.zhang
+uidNumber: 44624802
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# changxing.hu, user, aispeech, cm.cluster
+dn: uid=changxing.hu,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: changxing.hu
+gidNumber: 20000
+homeDirectory: /home/aispeech/changxing.hu
+sn: changxing.hu
+uid: changxing.hu
+uidNumber: 33841700
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# mjc50, user, aispeech, cm.cluster
+dn: uid=mjc50,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: mjc50
+gidNumber: 20000
+homeDirectory: /home/aispeech/mjc50
+sn: mjc50
+uid: mjc50
+uidNumber: 41662191
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# mjc96, user, aispeech, cm.cluster
+dn: uid=mjc96,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: mjc96
+gidNumber: 20000
+homeDirectory: /home/aispeech/mjc96
+sn: mjc96
+uid: mjc96
+uidNumber: 98383863
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ms324, user, aispeech, cm.cluster
+dn: uid=ms324,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ms324
+gidNumber: 20000
+homeDirectory: /home/aispeech/ms324
+sn: ms324
+uid: ms324
+uidNumber: 95427202
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yx978, user, aispeech, cm.cluster
+dn: uid=yx978,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yx978
+gidNumber: 20000
+homeDirectory: /home/aispeech/yx978
+sn: yx978
+uid: yx978
+uidNumber: 57384815
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# cz837, user, aispeech, cm.cluster
+dn: uid=cz837,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: cz837
+gidNumber: 20000
+homeDirectory: /home/aispeech/cz837
+sn: cz837
+uid: cz837
+uidNumber: 97420162
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# kj348, user, aispeech, cm.cluster
+dn: uid=kj348,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: kj348
+gidNumber: 20000
+homeDirectory: /home/aispeech/kj348
+sn: kj348
+uid: kj348
+uidNumber: 49821310
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ysj00, user, aispeech, cm.cluster
+dn: uid=ysj00,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ysj00
+gidNumber: 20000
+homeDirectory: /home/aispeech/aispeech/ysj00
+sn: ysj00
+uid: ysj00
+uidNumber: 83134078
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xch27, user, aispeech, cm.cluster
+dn: uid=xch27,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xch27
+gidNumber: 20000
+homeDirectory: /home/aispeech/xch27
+sn: xch27
+uid: xch27
+uidNumber: 25869849
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# az867, user, aispeech, cm.cluster
+dn: uid=az867,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: az867
+gidNumber: 20000
+homeDirectory: /home/aispeech/az867
+sn: az867
+uid: az867
+uidNumber: 31126827
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hjh38, user, aispeech, cm.cluster
+dn: uid=hjh38,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hjh38
+gidNumber: 20000
+homeDirectory: /home/aispeech/hjh38
+sn: hjh38
+uid: hjh38
+uidNumber: 45228729
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# qpz46, user, aispeech, cm.cluster
+dn: uid=qpz46,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: qpz46
+gidNumber: 20000
+homeDirectory: /home/aispeech/qpz46
+sn: qpz46
+uid: qpz46
+uidNumber: 59746376
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# fei.zhao, user, sjtu, cm.cluster
+dn: uid=fei.zhao,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: fei.zhao
+gidNumber: 10000
+homeDirectory: /home/sjtu/fei.zhao
+sn: fei.zhao
+uid: fei.zhao
+uidNumber: 40719045
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zc016, user, aispeech, cm.cluster
+dn: uid=zc016,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zc016
+gidNumber: 20000
+homeDirectory: /home/aispeech/zc016
+sn: zc016
+uid: zc016
+uidNumber: 2575857
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zc063, user, aispeech, cm.cluster
+dn: uid=zc063,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zc063
+gidNumber: 20000
+homeDirectory: /home/aispeech/zc063
+sn: zc063
+uid: zc063
+uidNumber: 23263552
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# tttt, user, aispeech, cm.cluster
+dn: uid=tttt,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: tttt
+gidNumber: 20000
+homeDirectory: /home/aispeech/tttt
+sn: tttt
+uid: tttt
+uidNumber: 66454221
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ttt51, user, aispeech, cm.cluster
+dn: uid=ttt51,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ttt51
+gidNumber: 20000
+homeDirectory: /home/aispeech/ttt51
+sn: ttt51
+uid: ttt51
+uidNumber: 73097207
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ml084, user, aispeech, cm.cluster
+dn: uid=ml084,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ml084
+gidNumber: 20000
+homeDirectory: /home/aispeech/ml084
+sn: ml084
+uid: ml084
+uidNumber: 10581133
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# mkh95, user, sjtu, cm.cluster
+dn: uid=mkh95,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: mkh95
+gidNumber: 10000
+homeDirectory: /home/sjtu/mkh95
+sn: mkh95
+uid: mkh95
+uidNumber: 1008122595
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yqh26, user, aispeech, cm.cluster
+dn: uid=yqh26,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yqh26
+gidNumber: 20000
+homeDirectory: /home/aispeech/yqh26
+sn: yqh26
+uid: yqh26
+uidNumber: 7535607
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xc483, user, aispeech, cm.cluster
+dn: uid=xc483,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xc483
+gidNumber: 20000
+homeDirectory: /home/aispeech/xc483
+sn: xc483
+uid: xc483
+uidNumber: 64950199
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# mys65, user, aispeech, cm.cluster
+dn: uid=mys65,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: mys65
+gidNumber: 20000
+homeDirectory: /home/aispeech/mys65
+sn: mys65
+uid: mys65
+uidNumber: 58208472
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# tl125, user, aispeech, cm.cluster
+dn: uid=tl125,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: tl125
+gidNumber: 20000
+homeDirectory: /home/aispeech/tl125
+sn: tl125
+uid: tl125
+uidNumber: 44554235
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# fzq56, user, aispeech, cm.cluster
+dn: uid=fzq56,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: fzq56
+gidNumber: 20000
+homeDirectory: /home/aispeech/fzq56
+sn: fzq56
+uid: fzq56
+uidNumber: 22542624
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# gy721, user, aispeech, cm.cluster
+dn: uid=gy721,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: gy721
+gidNumber: 20000
+homeDirectory: /home/aispeech/gy721
+sn: gy721
+uid: gy721
+uidNumber: 62973543
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# lz321, user, sjtu, cm.cluster
+dn: uid=lz321,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: lz321
+gidNumber: 10000
+homeDirectory: /home/sjtu/lz321
+sn: lz321
+uid: lz321
+uidNumber: 1008122513
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# cxh39, user, aispeech, cm.cluster
+dn: uid=cxh39,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: cxh39
+gidNumber: 20000
+homeDirectory: /home/aispeech/cxh39
+sn: cxh39
+uid: cxh39
+uidNumber: 22468989
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zlh77, user, sjtu, cm.cluster
+dn: uid=zlh77,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zlh77
+gidNumber: 10000
+homeDirectory: /home/sjtu/zlh77
+sn: zlh77
+uid: zlh77
+uidNumber: 1008050977
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wyr95, user, aispeech, cm.cluster
+dn: uid=wyr95,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wyr95
+gidNumber: 20000
+homeDirectory: /home/aispeech/wyr95
+sn: wyr95
+uid: wyr95
+uidNumber: 19539681
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# htw75, user, aispeech, cm.cluster
+dn: uid=htw75,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: htw75
+gidNumber: 20000
+homeDirectory: /home/aispeech/htw75
+sn: htw75
+uid: htw75
+uidNumber: 17113361
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# pcz20, user, aispeech, cm.cluster
+dn: uid=pcz20,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: pcz20
+gidNumber: 20000
+homeDirectory: /home/aispeech/pcz20
+sn: pcz20
+uid: pcz20
+uidNumber: 76298291
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jy526, user, aispeech, cm.cluster
+dn: uid=jy526,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jy526
+gidNumber: 20000
+homeDirectory: /home/aispeech/jy526
+sn: jy526
+uid: jy526
+uidNumber: 81338252
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xzs29, user, aispeech, cm.cluster
+dn: uid=xzs29,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xzs29
+gidNumber: 20000
+homeDirectory: /home/aispeech/xzs29
+sn: xzs29
+uid: xzs29
+uidNumber: 2391111
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# xyc43, user, aispeech, cm.cluster
+dn: uid=xyc43,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: xyc43
+gidNumber: 20000
+homeDirectory: /home/aispeech/xyc43
+sn: xyc43
+uid: xyc43
+uidNumber: 43280332
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# rcz56, user, aispeech, cm.cluster
+dn: uid=rcz56,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: rcz56
+gidNumber: 20000
+homeDirectory: /home/aispeech/rcz56
+sn: rcz56
+uid: rcz56
+uidNumber: 13820960
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# cl685, user, aispeech, cm.cluster
+dn: uid=cl685,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: cl685
+gidNumber: 20000
+homeDirectory: /home/aispeech/cl685
+sn: cl685
+uid: cl685
+uidNumber: 95246781
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ssl61, user, sjtu, cm.cluster
+dn: uid=ssl61,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ssl61
+gidNumber: 10000
+homeDirectory: /home/sjtu/ssl61
+sn: ssl61
+uid: ssl61
+uidNumber: 1008063061
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# bwt09, user, sjtu, cm.cluster
+dn: uid=bwt09,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: bwt09
+gidNumber: 10000
+homeDirectory: /home/sjtu/bwt09
+sn: bwt09
+uid: bwt09
+uidNumber: 1008063009
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# pys81, user, sjtu, cm.cluster
+dn: uid=pys81,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: pys81
+gidNumber: 10000
+homeDirectory: /home/sjtu/pys81
+sn: pys81
+uid: pys81
+uidNumber: 1008063081
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# zly27, user, sjtu, cm.cluster
+dn: uid=zly27,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zly27
+gidNumber: 10000
+homeDirectory: /home/sjtu/zly27
+sn: zly27
+uid: zly27
+uidNumber: 1008063027
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# szw73, user, sjtu, cm.cluster
+dn: uid=szw73,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: szw73
+gidNumber: 10000
+homeDirectory: /home/sjtu/szw73
+sn: szw73
+uid: szw73
+uidNumber: 1008070573
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jqg01, user, sjtu, cm.cluster
+dn: uid=jqg01,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jqg01
+gidNumber: 10000
+homeDirectory: /home/sjtu/jqg01
+sn: jqg01
+uid: jqg01
+uidNumber: 1008070501
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# kgx17, user, sjtu, cm.cluster
+dn: uid=kgx17,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: kgx17
+gidNumber: 10000
+homeDirectory: /home/sjtu/kgx17
+sn: kgx17
+uid: kgx17
+uidNumber: 1008070517
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# llr23, user, sjtu, cm.cluster
+dn: uid=llr23,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: llr23
+gidNumber: 10000
+homeDirectory: /home/sjtu/llr23
+sn: llr23
+uid: llr23
+uidNumber: 1008070523
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# ynq89, user, aispeech, cm.cluster
+dn: uid=ynq89,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ynq89
+gidNumber: 20000
+homeDirectory: /home/aispeech/ynq89
+sn: ynq89
+uid: ynq89
+uidNumber: 44284446
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# jx086, user, aispeech, cm.cluster
+dn: uid=jx086,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: jx086
+gidNumber: 20000
+homeDirectory: /home/aispeech/jx086
+sn: jx086
+uid: jx086
+uidNumber: 78799052
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wqz57, user, aispeech, cm.cluster
+dn: uid=wqz57,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wqz57
+gidNumber: 20000
+homeDirectory: /home/aispeech/wqz57
+sn: wqz57
+uid: wqz57
+uidNumber: 80348095
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hh135, user, aispeech, cm.cluster
+dn: uid=hh135,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hh135
+gidNumber: 20000
+homeDirectory: /home/aispeech/hh135
+sn: hh135
+uid: hh135
+uidNumber: 50537786
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# cyz92, user, aispeech, cm.cluster
+dn: uid=cyz92,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: cyz92
+gidNumber: 20000
+homeDirectory: /home/aispeech/cyz92
+sn: cyz92
+uid: cyz92
+uidNumber: 91190761
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# mkh96, user, sjtu, cm.cluster
+dn: uid=mkh96,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: mkh96
+gidNumber: 10000
+homeDirectory: /home/sjtu/mkh96
+sn: mkh96
+uid: mkh96
+uidNumber: 1008122596
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# lz322, user, sjtu, cm.cluster
+dn: uid=lz322,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: lz322
+gidNumber: 10000
+homeDirectory: /home/sjtu/lz322
+sn: lz322
+uid: lz322
+uidNumber: 1008122522
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yts21, user, aispeech, cm.cluster
+dn: uid=yts21,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yts21
+gidNumber: 20000
+homeDirectory: /home/aispeech/yts21
+sn: yts21
+uid: yts21
+uidNumber: 21249657
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# cz490, user, aispeech, cm.cluster
+dn: uid=cz490,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: cz490
+gidNumber: 20000
+homeDirectory: /home/aispeech/cz490
+sn: cz490
+uid: cz490
+uidNumber: 33345937
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# txz33, user, aispeech, cm.cluster
+dn: uid=txz33,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: txz33
+gidNumber: 20000
+homeDirectory: /home/aispeech/txz33
+sn: txz33
+uid: txz33
+uidNumber: 14639252
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# sjtu, Group, cm.cluster
+dn: cn=sjtu,ou=Group,dc=cm,dc=cluster
+objectClass: posixGroup
+cn: sjtu
+gidNumber: 10000
+memberUid: ylw21
+memberUid: xgl81
+memberUid: rhs17
+memberUid: ymq84
+memberUid: yby0512
+memberUid: fx310
+memberUid: hlw74
+memberUid: yf624
+memberUid: xfy99
+memberUid: yl710
+memberUid: ky219
+memberUid: wdz50
+memberUid: sy123
+memberUid: wd007
+memberUid: txh18
+memberUid: lc918
+memberUid: yl618
+memberUid: gcx00
+memberUid: xx205
+memberUid: lz123
+memberUid: wangpl
+memberUid: pcz88
+memberUid: wangxl
+memberUid: tf371
+memberUid: tyg13
+memberUid: nxc04
+memberUid: ks001
+memberUid: bj123
+memberUid: fx522
+memberUid: zhc00
+memberUid: zl113
+memberUid: qyw16
+memberUid: jhl00
+
+# aispeech, Group, cm.cluster
+dn: cn=aispeech,ou=Group,dc=cm,dc=cluster
+objectClass: posixGroup
+cn: aispeech
+gidNumber: 20000
+memberUid: fx310
+memberUid: yby23
+memberUid: ky219
+memberUid: wdz50
+memberUid: xgl81
+memberUid: xfy99
+memberUid: pcz88
+memberUid: ymq84
+memberUid: yl618
+memberUid: gcx00
+memberUid: xx205
+memberUid: yl710
+memberUid: lz123
+memberUid: wangpl
+memberUid: yf624
+memberUid: wd007
+memberUid: hx055
+memberUid: zq425
+memberUid: bj123
+memberUid: yhh86
+memberUid: wangxl
+memberUid: zht16
+memberUid: jwn27
+memberUid: fx522
+memberUid: mjc14
+memberUid: zhc00
+memberUid: sbt11
+memberUid: sz128
+memberUid: aid85
+memberUid: tx078
+memberUid: dc307
+memberUid: ymz09
+memberUid: wd929
+memberUid: bz193
+memberUid: hl761
+memberUid: yfc07
+memberUid: hedi7
+memberUid: sw121
+memberUid: tt123
+memberUid: bc299
+memberUid: mkh96
+memberUid: zyj34
+memberUid: myw19
+memberUid: lmdata
+
+# data, Group, cm.cluster
+dn: cn=data,ou=Group,dc=cm,dc=cluster
+objectClass: posixGroup
+cn: data
+gidNumber: 20001
+memberUid: xmz15
+
+# nlab, Group, cm.cluster
+dn: cn=nlab,ou=Group,dc=cm,dc=cluster
+objectClass: posixGroup
+cn: nlab
+gidNumber: 30000
+memberUid: wuchy
+memberUid: zhaoh
+memberUid: zhangxt
+memberUid: wangr
+memberUid: xuqk
+memberUid: zhangjy
+memberUid: jiazhy
+memberUid: maxz
+memberUid: chenyy
+memberUid: wangpl
+memberUid: ky219
+memberUid: yintj
+memberUid: wangxl
+
+# blab, Group, cm.cluster
+dn: cn=blab,ou=Group,dc=cm,dc=cluster
+objectClass: posixGroup
+cn: blab
+gidNumber: 40000
+memberUid: wangxw
+memberUid: tyg13
+
+# dev, Group, cm.cluster
+dn: cn=dev,ou=Group,dc=cm,dc=cluster
+objectClass: posixGroup
+cn: dev
+gidNumber: 50000
+memberUid: wd007
+memberUid: yf624
+memberUid: ky219
+memberUid: lz123
+memberUid: pcz88
+
+# airesearch, Group, cm.cluster
+dn: cn=airesearch,ou=Group,dc=cm,dc=cluster
+objectClass: posixGroup
+cn: airesearch
+gidNumber: 60000
+memberUid: wxm71
+memberUid: qyw16
+
+# ais85, user, aispeech, cm.cluster
+dn: uid=ais85,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: shadowAccount
+objectClass: posixAccount
+objectClass: inetOrgPerson
+cn: ais85
+gidNumber: 20000
+homeDirectory: /home/aispeech/ais85
+sn: ais85
+uid: ais85
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+uidNumber: 6734002
+
+# slb66, user, sjtu, cm.cluster
+dn: uid=slb66,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: slb66
+gidNumber: 10000
+homeDirectory: /home/sjtu/slb66
+sn: slb66
+uid: slb66
+uidNumber: 1004
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# sbt11, user, sjtu, cm.cluster
+dn: uid=sbt11,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: sbt11
+gidNumber: 10000
+homeDirectory: /home/sjtu/sbt11
+sn: sbt11
+uid: sbt11
+uidNumber: 100811
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# dz489, user, sjtu, cm.cluster
+dn: uid=dz489,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: dz489
+gidNumber: 10000
+homeDirectory: /home/sjtu/dz489
+sn: dz489
+uid: dz489
+uidNumber: 1008101
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# igrouptest, Group, cm.cluster
+dn: cn=igrouptest,ou=Group,dc=cm,dc=cluster
+gidNumber: 999999
+cn: igrouptest
+objectClass: posixGroup
+
+# ioutest, cm.cluster
+dn: ou=ioutest,dc=cm,dc=cluster
+ou: ioutest
+objectClass: top
+objectClass: organizationalUnit
+
+# user, ioutest, cm.cluster
+dn: ou=user,ou=ioutest,dc=cm,dc=cluster
+ou: ioutest
+ou: user
+objectClass: organizationalUnit
+
+# itest, user, ioutest, cm.cluster
+dn: uid=itest,ou=user,ou=ioutest,dc=cm,dc=cluster
+shadowWarning: 7
+mail:
+gidNumber: 20000
+cn: itest
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+uid: itest
+homeDirectory: /home/itest
+sn: itest
+shadowMin: 0
+uidNumber: 17348529
+shadowInactive: 0
+shadowExpire: 24837
+shadowMax: 999999
+shadowLastChange: 17423
+
+# itestad, user, ioutest, cm.cluster
+dn: uid=itestad,ou=user,ou=ioutest,dc=cm,dc=cluster
+shadowWarning: 7
+mail:
+gidNumber: 999999
+shadowMax: 999999
+shadowExpire: 24837
+shadowInactive: 0
+cn: itestad
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+uid: itestad
+uidNumber: 17338529
+shadowLastChange: 17414
+sn: itestad
+shadowMin: 0
+homeDirectory: /home/itestad
+
+# airseadm, user, airesearch, cm.cluster
+dn: uid=airseadm,ou=user,ou=airesearch,dc=cm,dc=cluster
+shadowWarning: 7
+mail:
+gidNumber: 60000
+shadowMax: 999999
+shadowExpire: 24837
+shadowInactive: 0
+cn: airseadm
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+uid: airseadm
+uidNumber: 61000
+shadowLastChange: 17414
+sn: airseadm
+shadowMin: 0
+homeDirectory: /home/airesearch/airseadm
+
+# aispower, user, aispeech, cm.cluster
+dn: uid=aispower,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: shadowAccount
+objectClass: posixAccount
+objectClass: inetOrgPerson
+cn: aispower
+gidNumber: 20000
+homeDirectory: /home/aispeech/aispower
+sn: aispower
+uid: aispower
+uidNumber: 21000
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# sjtuadmin, user, sjtu, cm.cluster
+dn: uid=sjtuadmin,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: shadowAccount
+objectClass: posixAccount
+objectClass: inetOrgPerson
+cn: sjtuadmin
+gidNumber: 10000
+homeDirectory: /home/sjtu/sjtuadmin
+sn: sjtuadmin
+uid: sjtuadmin
+uidNumber: 11000
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+shadowLastChange: 17498
+
+# qw941, user, aispeech, cm.cluster
+dn: uid=qw941,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: shadowAccount
+objectClass: posixAccount
+objectClass: inetOrgPerson
+cn: qw941
+gidNumber: 20000
+homeDirectory: /home/aispeech/qw941
+sn: qw941
+uid: qw941
+uidNumber: 17336789
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# deliver, Group, cm.cluster
+dn: cn=deliver,ou=Group,dc=cm,dc=cluster
+objectClass: posixGroup
+cn: deliver
+gidNumber: 20002
+memberUid: wwy74
+memberUid: az867
+memberUid: ynq89
+memberUid: xch27
+memberUid: xzw31
+memberUid: ql826
+memberUid: mjc14
+memberUid: mjc96
+memberUid: bz879
+memberUid: ml084
+memberUid: hx055
+memberUid: yf028
+memberUid: cz837
+memberUid: yz931
+memberUid: cx483
+memberUid: fzq56
+memberUid: yj912
+memberUid: kj348
+memberUid: nx951
+memberUid: cxh39
+memberUid: yx978
+memberUid: qpz46
+memberUid: pz853
+memberUid: yby23
+memberUid: pcz20
+memberUid: bj123
+memberUid: hbz25
+memberUid: wj145
+memberUid: fx310
+memberUid: htw75
+memberUid: yzl80
+memberUid: xtg25
+memberUid: fsc87
+memberUid: jfx25
+memberUid: ppz97
+memberUid: xmz15
+memberUid: zq425
+memberUid: xzs29
+memberUid: yhj30
+memberUid: wyr95
+memberUid: ww714
+memberUid: tx659
+memberUid: yfl13
+memberUid: wqz57
+memberUid: hjh38
+memberUid: jy526
+
+# cpdev, user, aispeech, cm.cluster
+dn: uid=cpdev,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: shadowAccount
+objectClass: posixAccount
+objectClass: inetOrgPerson
+cn: cpdev
+gidNumber: 20002
+homeDirectory: /home/aispeech/cpdev
+sn: cpdev
+uid: cpdev
+uidNumber: 100542
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# mjc14, user, aispeech, cm.cluster
+dn: uid=mjc14,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: shadowAccount
+objectClass: posixAccount
+objectClass: inetOrgPerson
+cn: mjc14
+gidNumber: 20000
+homeDirectory: /home/aispeech/aispeech/mjc14
+sn: mjc14
+uid: mjc14
+uidNumber: 3113
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yfl13, user, aispeech, cm.cluster
+dn: uid=yfl13,ou=user,ou=aispeech,dc=cm,dc=cluster
+shadowWarning: 7
+mail:
+gidNumber: 20000
+shadowMax: 999999
+shadowExpire: 24837
+shadowInactive: 0
+cn: yfl13
+objectClass: shadowAccount
+objectClass: posixAccount
+objectClass: inetOrgPerson
+loginShell: /bin/bash
+uid: yfl13
+shadowLastChange: 17414
+homeDirectory: /home/aispeech/yfl13
+sn: yfl13
+shadowMin: 0
+uidNumber: 17300001
+
+# zyj34, user, aispeech, cm.cluster
+dn: uid=zyj34,ou=user,ou=aispeech,dc=cm,dc=cluster
+shadowWarning: 7
+mail:
+gidNumber: 20000
+shadowMax: 999999
+shadowExpire: 24837
+shadowInactive: 0
+cn: zyj34
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+uid: zyj34
+uidNumber: 6700002
+shadowLastChange: 17414
+homeDirectory: /home/aispeech/zyj34
+sn: zyj34
+shadowMin: 0
+
+# tx659, user, aispeech, cm.cluster
+dn: uid=tx659,ou=user,ou=aispeech,dc=cm,dc=cluster
+shadowWarning: 7
+mail:
+gidNumber: 20000
+shadowMax: 999999
+shadowExpire: 24837
+shadowInactive: 0
+cn: tx659
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+uid: tx659
+uidNumber: 67000003
+shadowLastChange: 17414
+homeDirectory: /home/aispeech/tx659
+sn: tx659
+shadowMin: 0
+
+# qc904, user, aispeech, cm.cluster
+dn: uid=qc904,ou=user,ou=aispeech,dc=cm,dc=cluster
+shadowWarning: 7
+mail:
+gidNumber: 20000
+shadowMax: 999999
+shadowExpire: 24837
+shadowInactive: 0
+cn: qc904
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+uid: qc904
+uidNumber: 67000005
+shadowLastChange: 17414
+homeDirectory: /home/aispeech/qc904
+sn: qc904
+shadowMin: 0
+
+# kn092, user, aispeech, cm.cluster
+dn: uid=kn092,ou=user,ou=aispeech,dc=cm,dc=cluster
+shadowWarning: 7
+mail:
+gidNumber: 20000
+shadowMax: 999999
+shadowExpire: 24837
+shadowInactive: 0
+cn: kn092
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+loginShell: /bin/bash
+uid: kn092
+uidNumber: 67000004
+shadowLastChange: 17414
+homeDirectory: /home/aispeech/kn092
+sn: kn092
+shadowMin: 0
+
+# ykl521, user, aispeech, cm.cluster
+dn: uid=ykl521,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ykl521
+gidNumber: 20000
+homeDirectory: /home/aispeech/ykl521
+sn: ykl521
+uid: ykl521
+uidNumber: 43280333
+loginShell: /bin/bash
+
+# zhanghui01, user, aispeech, cm.cluster
+dn: uid=zhanghui01,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zhanghui01
+gidNumber: 20000
+homeDirectory: /home/aispeech/zhanghui01
+sn: zhanghui01
+uid: zhanghui01
+uidNumber: 56232
+loginShell: /bin/bash
+
+# wy1219, user, aispeech, cm.cluster
+dn: uid=wy1219,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wy1219
+gidNumber: 20000
+homeDirectory: /home/aispeech/wy1219
+sn: wy1219
+uid: wy1219
+uidNumber: 56233
+loginShell: /bin/bash
+
+# hz168, user, aispeech, cm.cluster
+dn: uid=hz168,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hz168
+gidNumber: 20000
+homeDirectory: /home/aispeech/hz168
+sn: hz168
+uid: hz168
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+uidNumber: 56335
+
+# groups, aispeech, cm.cluster
+dn: ou=groups,ou=aispeech,dc=cm,dc=cluster
+objectClass: organizationalUnit
+ou: aispeech
+ou: group
+ou: groups
+
+# lm, groups, aispeech, cm.cluster
+dn: cn=lm,ou=groups,ou=aispeech,dc=cm,dc=cluster
+objectClass: posixGroup
+cn: lm
+gidNumber: 20200
+memberUid: mjc14
+memberUid: ql826
+memberUid: az867
+memberUid: wy1219
+memberUid: ynq89
+memberUid: xzw31
+memberUid: ms324
+memberUid: xch27
+memberUid: mjc96
+
+# myw19, user, sjtu, cm.cluster
+dn: uid=myw19,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: myw19
+gidNumber: 10000
+homeDirectory: /home/sjtu/myw19
+sn: myw19
+uid: myw19
+uidNumber: 1008122719
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# wyz111, user, aispeech, cm.cluster
+dn: uid=wyz111,ou=user,ou=aispeech,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: wyz111
+gidNumber: 20000
+homeDirectory: /home/aispeech/wyz111
+sn: wyz111
+uid: wyz111
+uidNumber: 20301
+loginShell: /bin/bash
+
+# zhx66, user, sjtu, cm.cluster
+dn: uid=zhx66,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: zhx66
+gidNumber: 10000
+homeDirectory: /home/sjtu/zhx66
+sn: zhx66
+uid: zhx66
+uidNumber: 1008011566
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# dcp30, user, sjtu, cm.cluster
+dn: uid=dcp30,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: dcp30
+gidNumber: 10000
+homeDirectory: /home/sjtu/dcp30
+sn: dcp30
+uid: dcp30
+uidNumber: 1008011530
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# cl811, user, sjtu, cm.cluster
+dn: uid=cl811,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: cl811
+gidNumber: 10000
+homeDirectory: /home/sjtu/cl811
+sn: cl811
+uid: cl811
+uidNumber: 1008091911
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# yzl23, user, sjtu, cm.cluster
+dn: uid=yzl23,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: yzl23
+gidNumber: 10000
+homeDirectory: /home/sjtu/yzl23
+sn: yzl23
+uid: yzl23
+uidNumber: 1008122711
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# hjw77, user, sjtu, cm.cluster
+dn: uid=hjw77,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: hjw77
+gidNumber: 10000
+homeDirectory: /home/sjtu/hjw77
+sn: hjw77
+uid: hjw77
+uidNumber: 1008012477
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# oyl11, user, sjtu, cm.cluster
+dn: uid=oyl11,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: oyl11
+gidNumber: 10000
+homeDirectory: /home/sjtu/oyl11
+sn: oyl11
+uid: oyl11
+uidNumber: 1008122711
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# rm031, user, sjtu, cm.cluster
+dn: uid=rm031,ou=user,ou=sjtu,dc=cm,dc=cluster
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: rm031
+gidNumber: 10000
+homeDirectory: /home/sjtu/rm031
+sn: rm031
+uid: rm031
+uidNumber: 1008012331
+loginShell: /bin/bash
+mail:
+shadowExpire: 24837
+shadowInactive: 0
+shadowLastChange: 17414
+shadowMax: 999999
+shadowMin: 0
+shadowWarning: 7
+
+# lmdata, user, aispeech, cm.cluster
+dn: uid=lmdata,ou=user,ou=aispeech,dc=cm,dc=cluster
+sn: lmdata
+loginShell: /bin/bash
+uidNumber: 20201
+gidNumber: 20200
+objectClass: posixAccount
+objectClass: uidObject
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+uid: lmdata
+cn: lmdata
+homeDirectory: /home/aispeech/lmdata
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 254
+# numEntries: 253
