@@ -2,6 +2,7 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
+# Author: viking(auimoviki@gmail.com)
 
+from . import outop
 from .corpus import NceCorpus

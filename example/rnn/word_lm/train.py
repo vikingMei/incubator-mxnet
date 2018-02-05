@@ -22,12 +22,13 @@ import logging
 import argparse
 
 import numpy as np
-import mxnet as mx, math
-from mxnet.model import BatchEndParam
+import mxnet as mx
 
 from model import *
 from module import *
-from data import Corpus, CorpusIter, NceCorpusIter
+from nce import NceCorpus
+from data import Corpus, CorpusIter
+from mxnet.model import BatchEndParam
 
 
 parser = argparse.ArgumentParser(description='PennTreeBank LSTM Language Model')
@@ -116,7 +117,7 @@ def nce_evaluate(valid_module, data_iter, epoch, mode, bptt, batch_size):
 if __name__ == '__main__':
     # args
     head = '%(asctime)-15s %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=head)
+    logging.basicConfig(level=logging.INFO, format=head)
     args = parser.parse_args()
     logging.info(args)
     ctx = mx.gpu(0)
@@ -125,22 +126,25 @@ if __name__ == '__main__':
     mx.random.seed(args.seed)
 
     # data
-    corpus = Corpus(args.data)
-    ntokens = len(corpus.dictionary)
     if args.use_nce:
-        train_data = NceCorpusIter(corpus.train, batch_size, bptt, args.num_label, corpus.negative)
-        valid_data = NceCorpusIter(corpus.valid, batch_size, bptt, args.num_label, corpus.negative)
-        test_data = NceCorpusIter(corpus.test, batch_size, bptt, args.num_label, corpus.negative)
+        corpus = NceCorpus('%s/train.txt'%args.data, '%s/test.txt'%args.data, '%s/valid.txt'%args.data)
+        corpus.vocab.dump('%s/vocab.json'%args.output)
+        ntokens = len(corpus.vocab)
+
+        train_data = corpus.get_train_iter(batch_size, bptt, args.num_label)
+        valid_data = corpus.get_valid_iter(batch_size, bptt, args.num_label)
+        test_data = corpus.get_test_iter(batch_size, bptt, args.num_label)
         evaluatefunc = nce_evaluate
     else:
+        corpus = Corpus(args.data)
+        ntokens = len(corpus.dictionary)
         train_data = CorpusIter(corpus.train, batch_size, bptt)
         valid_data = CorpusIter(corpus.valid, batch_size, bptt)
         test_data = CorpusIter(corpus.test, batch_size, bptt)
         evaluatefunc = evaluate
 
-
-    # save vocab
-    corpus.dictionary.dump('%s/vocab.json'%args.output)
+        # save vocab
+        corpus.dictionary.dump('%s/vocab.json'%args.output)
 
     # model
     loss, states, state_names = rnn(bptt, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, batch_size, 
@@ -180,11 +184,9 @@ if __name__ == '__main__':
             if nbatch % args.log_interval == 0 and nbatch > 0:
                 cur_loss = total_loss / bptt / batch_size / args.log_interval
                 logging.info('Iter[%d] Batch [%d]\tLoss:  %.7f,\tPerplexity:\t%.7f' % \
-                             (epoch, nbatch, cur_loss, cur_loss))
-                             #(epoch, nbatch, cur_loss, math.exp(cur_loss)))
+                             (epoch, nbatch, cur_loss, math.exp(cur_loss)))
                 total_loss = 0.0
             nbatch += 1
-
 
         # validation
         valid_loss = evaluatefunc(module, valid_data, epoch, 'Valid', bptt, batch_size)

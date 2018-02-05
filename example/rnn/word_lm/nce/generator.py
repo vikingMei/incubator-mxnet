@@ -2,11 +2,14 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
+# Author: viking(auimoviki@gmail.com)
 
 import random
 import logging
 import numpy as np
+import mxnet as mx
+
+import pdb
 
 
 class NceLabGenerator():
@@ -33,15 +36,17 @@ class NceLabGenerator():
         '''
         # [1, bptt,batch_size]
         tmp1 = self.data[self.idx+1:self.idx+1+self.bptt]
-        tmp1 = tmp1.expand_dims(0)
+        tmp1 = tmp1.reshape((1, self.bptt, self.batch_size))
 
         # [numlab-1, bptt, batch_size]
-        tmp2 = np.zeros(self.numlab-1*self.bptt*self.batch_size) 
-        for i in range(0,tmp2.size):
-            res[i] = self.negative[random.randint(0, len(self.negative) - 1)] 
-        tmp2.reshape(self.numlab-1, self.bptt, self.batch_size)
-
-        return np.concatenate(tmp1, tmp2, dim=0).transpose((1,2,0))
+        if self.numlab>1:
+            tmp2 = np.zeros((self.numlab-1)*self.bptt*self.batch_size) 
+            for i in range(0,tmp2.size):
+                tmp2[i] = self.negative[random.randint(0, len(self.negative) - 1)] 
+            tmp2 = tmp2.reshape((self.numlab-1, self.bptt, self.batch_size))
+            return np.concatenate((tmp1, tmp2), axis=0).transpose((1,2,0))
+        else:
+            return tmp1.transpose((1,2,0)) 
 
 
     def norepeat_sample(self):
@@ -67,11 +72,15 @@ class NceLabGenerator():
 
     def run(self):
         label_weight = np.zeros((self.bptt, self.batch_size, self.numlab), dtype='float32')
-        label_weight[0,:,:] = 1.0
+        label_weight[:,:,0] = 1.0
+        label_weight = mx.nd.array(label_weight)
 
         idxend = self.idxend-self.bptt
         while self.idx<idxend:
             data = self.data[self.idx:self.idx+self.bptt,:] 
             label = self.norepeat_sample()
             self.idx += self.bptt
+
+            data = mx.nd.array(data, dtype='int32')
+            label = mx.nd.array(label, dtype='int32')
             self.queue.put((data, label, label_weight))

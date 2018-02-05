@@ -2,8 +2,9 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
+# Author: viking(auimoviki@gmail.com)
 
+import pdb
 import logging
 import threading
 import numpy as np
@@ -15,8 +16,9 @@ from multiprocessing import Queue
 from .utils import batchify
 from .generator import NceLabGenerator
 
+
 class NceCorpusIter(mx.io.DataIter):
-    def __init__(self, source, batch_size, bptt, numlab, negative, num_parall=10):
+    def __init__(self, source, batch_size, bptt, numlab, negative, num_parall=2):
         super(NceCorpusIter, self).__init__()
         self.logger = logging.getLogger('NceCorpusIter')
 
@@ -29,8 +31,11 @@ class NceCorpusIter(mx.io.DataIter):
         self.num_parall = num_parall
         self.negative = negative
 
-        self.queue = Queue(20)
         self.ppoll = []
+        self.queue = Queue(20)
+        self.jobend_pid = None
+
+        self.running = False
 
         label_shape = (bptt, batch_size, numlab)
         self.provide_label = [
@@ -38,11 +43,9 @@ class NceCorpusIter(mx.io.DataIter):
                 mx.io.DataDesc(name='label_weight', shape=label_shape, dtype='float32')]
         self.provide_data = [mx.io.DataDesc(name='data', shape=(bptt, batch_size), dtype='int32')]
 
-        self._start_generator()
 
-
-    def _start_generator(self):
-        if self.queue.qsize()>0:
+    def _start(self):
+        if self.running:
             self.logger.warning('queue is not empty, just skip')
             return 
         else:
@@ -55,7 +58,7 @@ class NceCorpusIter(mx.io.DataIter):
                 self.logger.warning('exist alive thread, skip corpus iter start')
 
         def target_func(data, idxbeg, idxend, batch_size, bptt, numlab, negative, queue):
-            generator = NceLabGenerator (data, idxbeg, idxend, batch_size, bptt, numlab, negative, queue)
+            generator = NceLabGenerator(data, idxbeg, idxend, batch_size, bptt, numlab, negative, queue)
             generator.run()
 
         self.ppoll = []
@@ -82,18 +85,24 @@ class NceCorpusIter(mx.io.DataIter):
 
         # start job end thread
         def jobend_proc():
+            self.logger.debug('wait for data generator exit')
             for pid in self.ppoll:
                 pid.join()
-            self.logger.info('all data generator finished')
+            self.logger.debug('all data generator finished')
             self.queue.put(None)
         self.jobend_pid = threading.Thread(target=jobend_proc)
         self.jobend_pid.start()
 
+        self.running = True
 
-    def _stop_generator(self):
-        self.logger.info('wait for backend generator exit')
-        self.jobend_pid.join()
-        self.logger.info('data generation done')
+
+    def _stop(self):
+        self.logger.debug('wait for backend generator exit')
+        #for pid in self.ppoll:
+        #    pid.terminate()
+        #if jobend_pid:
+        #    self.jobend_pid.join()
+        self.logger.debug('data generation done')
 
 
     def getdata(self):
@@ -115,13 +124,17 @@ class NceCorpusIter(mx.io.DataIter):
 
 
     def next(self):
+        if not self.running:
+            self._start()
+
         if self.iter_next():
             return mx.io.DataBatch(data=self.getdata(), provide_data=self.provide_data,
                     label=self.getlabel(), provide_label=self.provide_label)
         else:
-            self._stop_generator()
+            self.running = False
             raise StopIteration
 
 
     def reset(self):
-        self._start_generator()
+        self._stop()
+        self._start()

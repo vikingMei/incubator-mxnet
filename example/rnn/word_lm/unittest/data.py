@@ -2,7 +2,7 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
+# Author: viking(auimoviki@gmail.com)
 
 import sys
 sys.path.append('.')
@@ -20,8 +20,7 @@ num_label = 100
 rootdir='./data/ptb/'
 corpus = NceCorpus('%s/train.txt'%rootdir, '%s/valid.txt'%rootdir, '%s/test.txt'%rootdir)
 
-train_iter = corpus.get_test_iter(batch_size, bptt, num_label, 10)
-
+train_iter = corpus.get_test_iter(batch_size, bptt, num_label, 1)
 idx = 0
 for data in train_iter:
     print(data)

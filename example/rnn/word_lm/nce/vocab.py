@@ -2,7 +2,7 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
+# Author: viking(auimoviki@gmail.com)
 
 import os
 import json
@@ -47,7 +47,7 @@ class Vocab(object):
         return self.wrd2idx[wrd]
 
 
-    def dump(self, fvocab, ffreq=None):
+    def dump(self, fname, ffreq=None):
         fid = open(fname, 'w')
         json.dump(self.wrd2idx, fid)
         fid.close()

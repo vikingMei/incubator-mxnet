@@ -2,10 +2,11 @@
 # coding: utf-8
 #
 # Usage: 
-# Author: wxm71(weixing.mei@aispeech.com)
+# Author: viking(auimoviki@gmail.com)
 
 import math
 import logging
+import mxnet as mx
 
 from .utils import tokenize, Vocab
 from .corpusiter import NceCorpusIter
@@ -40,7 +41,7 @@ class NceCorpus(object):
             self.wrdfrq[idx] += 1
             total_wrd += 1
 
-        total_cnt = total_wrd
+        total_cnt = 0
         self.negdis = [0]*len(self.vocab)
         for idx,cnt in enumerate(self.wrdfrq):
             self.wrdfrq[idx] /= total_wrd
@@ -56,25 +57,26 @@ class NceCorpus(object):
         denorm = float(total_cnt)
         for key,_ in enumerate(self.negdis):
             self.negdis[key] /= denorm
+        self.negdis = mx.nd.array(self.negdis)
 
 
-    def _get_iter(self, data, batch_size, bptt, numlab, num_parall=10):
+    def _get_iter(self, data, batch_size, bptt, numlab, num_parall=2):
         return NceCorpusIter(data, batch_size, bptt, numlab, self.negative, num_parall) 
 
 
-    def get_train_iter(self, batch_size, bptt, numlab, num_parall=10):
+    def get_train_iter(self, batch_size, bptt, numlab, num_parall=2):
         if not self._train_iter:
             self._train_iter = self._get_iter(self.data_train, batch_size, bptt, numlab, num_parall) 
         return self._train_iter
 
 
-    def get_test_iter(self, batch_size, bptt, numlab, num_parall=10):
+    def get_test_iter(self, batch_size, bptt, numlab, num_parall=2):
         if not self._test_iter:
             self._test_iter = self._get_iter(self.data_test, batch_size, bptt, numlab, num_parall) 
         return self._test_iter
 
 
-    def get_valid_iter(self, batch_size, bptt, numlab, num_parall=10):
+    def get_valid_iter(self, batch_size, bptt, numlab, num_parall=2):
         if not self._valid_iter:
             self._valid_iter = self._get_iter(self.data_valid, batch_size, bptt, numlab, num_parall) 
         return self._valid_iter
