@@ -31,8 +31,30 @@ def create_eval_end_cb(prefix, reset_param):
         2. update model parameter
         3. create best model link
     '''
+    best_metric = 999999 
+    best_epoch = 0 
+
     def _callback(params):
-        pass
+        nonlocal best_metric 
+        nonlocal best_epoch
+
+        model = params.locals['self'] 
+
+        name, metric = params.eval_metric.get()
+        logging.info('learning rate: %f, [%s] on valid set is [%f]'%(model._optimizer.lr, name, metric))
+
+        if metric>best_metric:
+            model._optimizer.lr /= 2.0
+            logging.info('update learning rate to %f'%model._optimizer.lr)
+
+            if reset_param:
+                fname = '%s-%04d.params' % (prefix,best_epoch)
+                logging.info('reset parameter from ' % best_epoch)
+                model.load_params(fname)
+        else:
+            best_metric = metric
+            best_epoch = params.epoch
+
     return _callback
 
 
@@ -41,6 +63,7 @@ if __name__ == '__main__':
 
     parse = build_arg_parser()
     args = parse.parse_args()
+    logging.info(args)
 
     # load corpus
     if args.use_nce:
@@ -50,17 +73,22 @@ if __name__ == '__main__':
     corpus.vocab.dump('%s/vocab.json'%args.output)
 
     data_train = corpus.get_train_iter(args.batch_size, args.bptt)
-    data_valid = corpus.get_valid_iter(args.batch_size, args.bptt)
+    data_valid = corpus.get_valid_iter(args.batch_size, args.bptt, 1)
 
     # build network
-    network = get_ce_net(args.num_layer, args.num_hidden, args.num_embed, args.bptt, len(corpus.vocab))
+    network = get_ce_net(args.num_layer, args.num_hidden, args.num_embed, args.bptt, 
+            len(corpus.vocab), dropout=args.dropout, tied=args.tied)
     model = mx.mod.Module(symbol=network,
         data_names=[x[0] for x in data_train.provide_data],
         label_names=[y[0] for y in data_train.provide_label],
         context=[mx.gpu(0) if args.gpu else mx.cpu()])
 
     # get metric
-    metric = mx.metric.Perplexity(ignore_label=corpus.vocab.get_wrd('<pad>'))
+    metric = mx.metric.Perplexity(ignore_label=corpus.vocab.PAD_ID) 
+
+    modprefix = '%s/model'%args.output
+
+    eval_end_cb = create_eval_end_cb(modprefix, False)
 
     model.fit(
         train_data=data_train,
@@ -70,6 +98,6 @@ if __name__ == '__main__':
         initializer=mx.init.Xavier(),
         eval_data=data_valid,
         eval_metric=metric,
-        #eval_end_callback=eval_end_cb,
+        eval_end_callback=eval_end_cb,
         batch_end_callback=mx.callback.Speedometer(args.batch_size, 50),
-        epoch_end_callback=mx.callback.do_checkpoint('%s/model'%args.output))
+        epoch_end_callback=mx.callback.do_checkpoint(modprefix))

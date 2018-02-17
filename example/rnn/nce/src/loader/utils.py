@@ -32,7 +32,7 @@ def tokenize(fname, vocab, update_vocab=False, bos=False, eos=False):
 
 
 def batchify(data, batch_size):
-    """Reshape data into (num_example, batch_size)"""
+    """Reshape data into (nbatch, batch_size)"""
     nbatch = data.shape[0] // batch_size
     data = data[:nbatch * batch_size]
     data = data.reshape((batch_size, nbatch)).T

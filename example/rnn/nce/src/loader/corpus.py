@@ -12,19 +12,25 @@ from .utils import tokenize, batchify
 from .vocab import Vocab
 from .corpusiter import CorpusIter
 
+def dump_data(data, base):
+    fid = open(base, 'w')
+    buf = [str(i) for i in data[0:100]]
+    fid.write(' '.join(buf))
+    fid.close()
+
 
 class Corpus(object):
     def __init__(self, basedir=None, vocab:Vocab=None):
         self.logger = logging.getLogger(str(self.__class__))
 
-        ftest = '%s/test.txt'  % basedir
         ftrain = '%s/train.txt' % basedir
         fvalid = '%s/valid.txt' % basedir
+        ftest = '%s/test.txt'  % basedir
 
         update_vocab = vocab is None
         self.data_train, self.vocab = tokenize(ftrain, vocab, update_vocab=update_vocab, eos=True)
-        self.data_valid, _ = tokenize(fvalid, vocab, eos=True)
-        self.data_test, _ = tokenize(ftest, vocab, eos=True)
+        self.data_valid, _ = tokenize(fvalid, self.vocab, eos=True)
+        self.data_test, _ = tokenize(ftest, self.vocab, eos=True)
 
         self._test_iter = None
         self._train_iter = None

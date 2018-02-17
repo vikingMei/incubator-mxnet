@@ -20,7 +20,7 @@ class CorpusIter(mx.io.DataIter):
         super(CorpusIter, self).__init__()
         self.logger = logging.getLogger(str(self.__class__))
 
-        # [num_of_batch, batch_size]
+        # [nbatch, batch_size]
         self.source_ = batchify(np.array(source), batch_size)
 
         self.bptt = bptt
@@ -70,6 +70,7 @@ class CorpusIter(mx.io.DataIter):
             label = source[idx+1:idx+bptt+1, :]
             queue.put((data, label))
             idx += bptt
+
 
     @staticmethod
     def jobend_tgtfunc(ppoll, queue):
@@ -154,4 +155,3 @@ class CorpusIter(mx.io.DataIter):
 
     def reset(self):
         self._stop()
-        self._start()
